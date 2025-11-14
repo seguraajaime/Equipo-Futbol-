@@ -1,4 +1,12 @@
-9;Antonio Gomez;DC;0;14;11;2025
-10;Jaime Segura;MCO;0;14;11;2025
+9;Antonio Gomez;DC;1;14;11;2025
+10;Jaime Segura;MCO;1;14;11;2025
 22;Carlos Rodriguez;DFC;1;14;11;2025
-11;Diego Cid ;MC;1;14;11;2025
+11;Diego Cid;MC;1;14;11;2025
+88;Alejandro Marquez;LD;1;14;11;2025
+12;Alejandro Soto;LI ;1;14;11;2025
+1;Iago Aspas;POR;1;14;11;2025
+2;Kilian Mbappe;DFC;1;14;11;2025
+3;Luka Modric;MC;1;14;11;2025
+4;Rodrygo Goes;EI;1;14;11;2025
+5;Lionel Andres Messi ;ED;1;14;11;2025
+6;Jaime Cunef;DC;1;14;11;2025

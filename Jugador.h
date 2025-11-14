@@ -31,7 +31,6 @@ private:
     string posicion; 
     bool disponible; 
     fecha fechaInicioContrato; 
-    fecha fechaFinContrato;
 
 public:
     Jugador(int dorsal, const string & nombre, const string & posicion);
