@@ -13,7 +13,7 @@ struct fecha {
     fecha(int dia, int mes, int ano) : dia(dia), mes(mes), ano(ano) {}
 };
 
-fecha fechaHoy() {
+inline fecha fechaHoy() {
     time_t t = time(nullptr);
     tm* now = localtime(&t);
 
@@ -23,8 +23,6 @@ fecha fechaHoy() {
     f.ano = now->tm_year + 1900;
     return f;
 }
-
-
 
 class Jugador {
 private:
