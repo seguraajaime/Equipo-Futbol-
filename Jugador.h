@@ -1,29 +1,38 @@
 #pragma once
 #include <string>
 #include <ctime>
+using namespace std;
 
 //  Clase para representar jugadores
+struct fecha{
+    int dia;
+    int mes;
+    int ano;
+};
+
+fecha constructorFecha(int dia, int mes, int ano);
+
 class Jugador {
 private:
-    int dorsal; // [cite: 35] ID único, como la matrícula
-    std::string nombre; // [cite: 35]
-    std::string posicion; // [cite: 35]
-    bool disponible; // [cite: 35] Estado (Libre / Contratado)
-    std::time_t fechaInicioContrato; // [cite: 46]
-    std::time_t fechaFinContrato;
+    int dorsal; 
+    string nombre; 
+    string posicion; 
+    bool disponible; 
+    fecha fechaInicioContrato; 
+    fecha fechaFinContrato;
 
 public:
-    Jugador(int dorsal, const std::string& nombre, const std::string& pos);
+    Jugador(int dorsal, const string& nombre, const string& pos);
     int getDorsal() const;
-    std::string getNombre() const;
-    std::string getPosicion() const;
+    string getNombre() const;
+    string getPosicion() const;
     bool estaDisponible() const;
-    std::time_t getFechaInicioContrato() const;
-    std::time_t getFechaFinContrato() const;
+    fecha getFechaInicioContrato() const;
+    fecha getFechaFinContrato() const;
     
-    void firmarContrato(); // [cite: 36] Análogo a alquilar()
-    void finalizarContrato(); // [cite: 36] Análogo a devolver()
+    void firmarContrato(); 
+    void finalizarContrato(); 
 
-    std::string serializar() const; // [cite: 42]
-    static Jugador* deserializar(const std::string& linea); // [cite: 42]
+    string serializar() const; 
+    static Jugador* deserializar(const std::string& linea); 
 };
