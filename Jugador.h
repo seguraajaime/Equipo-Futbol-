@@ -8,8 +8,7 @@ struct fecha {
     int mes;
     int ano;
 
-    fecha() : dia(0), mes(0), ano(0) {}
-
+    fecha() : dia(0), mes(0), ano(0) {};
     fecha(int dia, int mes, int ano) : dia(dia), mes(mes), ano(ano) {}
 };
 
@@ -30,7 +29,8 @@ private:
     string nombre; 
     string posicion; 
     bool disponible; 
-    fecha fechaInicioContrato; 
+    fecha fechaInicioContrato;
+    fecha fechaFinContrato;
 
 public:
     Jugador(int dorsal, const string & nombre, const string & posicion);
