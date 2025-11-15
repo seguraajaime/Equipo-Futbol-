@@ -1,9 +1,9 @@
 #pragma once
-#include <ctime>
-#include <iostream>
-#include <vector>
-#include <algorithm>    
 #include <string>
+#include <stdexcept>
+#include <ctime>
+#include <vector>
+#include <memory>
 using namespace std;
 
 //  Clase para representar el contrato
@@ -31,4 +31,16 @@ public:
 
     string getFechaInicioStr() const;
     string getFechaFinStr() const;
+    
+    // Métodos para guardar y cargar archivos
+    //static void guardarEnArchivo(const vector<Contrato*>& contratos, const string& ruta);
+    //static vector<Contrato*> cargarDesdeArchivo(const string& ruta);
+    static void guardarEnArchivo(
+        const std::vector<std::unique_ptr<Contrato>>& contratos, 
+        const std::string& archivo
+    );
+    
+    static std::vector<std::unique_ptr<Contrato>> cargarDesdeArchivo(
+        const std::string& archivo
+    );
 };
