@@ -8,9 +8,9 @@ using namespace std;
 
 
 void menu();
-void anadirJugador();
-void mostrarJugadores();
-void eliminarJugador();
+void ficharJugador();
+void mostrarPlantilla();
+void rescindirContratoJugador();
 
 int main() {
     menu();
@@ -21,9 +21,9 @@ void menu() {
     int opcion = 0;
     do {
         cout << "\n===== MENU EQUIPO =====\n";
-        cout << "1. Anadir jugador\n";
-        cout << "2. Ver todos los jugadores\n";
-        cout << "3. Eliminar jugador\n";
+        cout << "1. Fichar jugador\n";
+        cout << "2. Ver toda la plantilla\n";
+        cout << "3. Rescindir contrato jugador\n";
         cout << "4. Salir\n";
         cout << "Elige una opcion: ";
         cin >> opcion;
@@ -31,13 +31,13 @@ void menu() {
 
         switch (opcion) {
         case 1:
-            anadirJugador();
+            ficharJugador();
             break;
         case 2:
-            mostrarJugadores();
+            mostrarPlantilla();
             break;
         case 3:
-            eliminarJugador();
+            rescindirContratoJugador();
             break;
         case 4:
             cout << "Saliendo...\n";
@@ -51,7 +51,7 @@ void menu() {
 }
 
 
-void anadirJugador() {
+void ficharJugador() {
     int dorsal;
     string nombre, posicion;
 
@@ -81,7 +81,7 @@ void anadirJugador() {
     cout << "Jugador guardado en jugadores.txt\n";
 }
 
-void mostrarJugadores() {
+void mostrarPlantilla() {
     ifstream fin("jugadores.txt");
     if (!fin) {
         cout << "No hay archivo jugadores.txt todavia.\n";
@@ -118,7 +118,7 @@ void mostrarJugadores() {
 
     
 }
-void eliminarJugador() {
+void rescindirContratoJugador() {
     ifstream fin("jugadores.txt");
     if (!fin) {
         cout << "No hay archivo jugadores.txt todavia.\n";
@@ -126,9 +126,9 @@ void eliminarJugador() {
     }
 
     int modo;
-    cout << "\nEliminar por:\n";
+    cout << "\nRescindir contrato por:\n";
     cout << "1. Dorsal\n";
-    cout << "2. Nombre\n";
+    cout << "2. Volver al menu\n";
     cout << "Elige opcion: ";
     cin >> modo;
     cin.ignore();
@@ -141,8 +141,7 @@ void eliminarJugador() {
         cin >> dorsalBuscado;
         cin.ignore();
     } else if (modo == 2) {
-        cout << "Introduce el nombre EXACTO: ";
-        getline(cin, nombreBuscado);
+        return;
     } else {
         cout << "Opcion no valida.\n";
         return;
@@ -160,9 +159,7 @@ void eliminarJugador() {
 
         if (modo == 1 && j->getDorsal() == dorsalBuscado) {
             borrar = true;
-        } else if (modo == 2 && j->getNombre() == nombreBuscado) {
-            borrar = true;
-        }
+        } 
 
         if (borrar) {
             encontrado = true;
@@ -189,5 +186,5 @@ void eliminarJugador() {
     }
     fout.close();
 
-    cout << "Jugador(es) eliminado(s) correctamente.\n";
+    cout << "Jugador eliminado correctamente.\n";
 }; 
