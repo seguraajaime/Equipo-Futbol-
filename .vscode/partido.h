@@ -8,7 +8,7 @@ enum class EstadoPartido {
     JUGADO
 };
 
-// Funciones auxiliares para conversión de estado
+
 string estadoToString(EstadoPartido estado);
 EstadoPartido stringToEstado(const string& estadoStr);
 
@@ -32,7 +32,7 @@ public:
     Partido(int id, const string& local, const string& visitante,
             time_t fecha, int gl, int gv, const string& est);
 
-    // Getters
+    
     int getId() const;
     time_t getFechaPartido() const;
     EstadoPartido getEstado() const;
@@ -43,8 +43,7 @@ public:
     void registrarResultado(int local, int visitante);
     void registrarResultado(const std::string& marcador); // Sobrecarga
     string obtenerInfo() const;
-
-    // Persistencia
+    
     string serializar() const;
     string serializarTabla() const;
     static unique_ptr<Partido> deserializar(const string& linea);

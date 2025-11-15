@@ -4,10 +4,10 @@
 #include <iomanip>
 #include <stdexcept>
 using namespace std;
-// Inicialización del ID estático
+
 int Partido::nextId = 1;
 
-// Funciones auxiliares
+
 string estadoToString(EstadoPartido estado) {
     return estado == EstadoPartido::PROGRAMADO ? "PROGRAMADO" : "JUGADO";
 }

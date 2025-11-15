@@ -6,7 +6,7 @@
 #include <fstream>
 #include <algorithm>
 using namespace std;
-// Gestor de partidos
+
 class GestorPartidos {
 private:
     vector<unique_ptr<Partido>> partidos;
@@ -20,7 +20,7 @@ public:
         cout << "Partido creado con ID: " << partidos.back()->getId() << endl;
     }
 
-    // Persistencia
+    
     void guardarEnArchivo(const string& ruta) const {
         ofstream ofs(ruta, ios::trunc);
         if (!ofs) throw runtime_error("No se pudo abrir el archivo para escribir: " + ruta);
@@ -35,7 +35,7 @@ public:
         ofstream ofs(ruta, ios::trunc);
         if (!ofs) throw runtime_error("No se pudo abrir el archivo para escribir: " + ruta);
         
-        // Escribir encabezado de tabla
+        // Encabezado de tabla
         ofs << setfill('-') << setw(110) << "" << endl;
         ofs << setfill(' ') 
             << setw(4) << "ID" << "| "
@@ -149,7 +149,7 @@ public:
     }
 };
 
-// Menú principal
+
 void mostrarMenu() {
     cout << "\n========== GESTOR DE PARTIDOS ==========" << endl;
     cout << "1. Crear nuevo partido" << endl;
@@ -180,7 +180,7 @@ int main() {
     while (true) {
         mostrarMenu();
         cin >> opcion;
-        cin.ignore(); // Limpiar buffer de entrada
+        cin.ignore(); 
 
         try {
             switch (opcion) {
@@ -254,7 +254,7 @@ int main() {
                         gestor.guardarEnArchivo("partidos.txt");
                         cout << "Partidos guardados en 'partidos.txt' (formato CSV)." << endl;
                         
-                        // Guardar también la tabla de visualización
+                        
                         gestor.mostrarTablaEnArchivo("partidos_tabla.txt");
                         cout << "Tabla guardada en 'partidos_tabla.txt'." << endl;
                     } catch (const exception& e) {
