@@ -1,0 +1,23 @@
+# =================================
+# Archivos compilados y binarios
+# =================================
+*.exe
+*.o
+*.dll
+build/
+
+# =================================
+# Archivos de datos generados
+# =================================
+# Ignora los archivos de datos que genera tu programa
+partidos.txt
+partidos_tabla.txt
+*.log
+
+# =================================
+# Configuración local del editor
+# =================================
+# Ignora archivos de configuración local de VSCode
+# PERO permite settings.json si quieres compartirlo
+.vscode/launch.json
+.vscode/tasks.json

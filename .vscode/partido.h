@@ -2,22 +2,22 @@
 #include <string>
 #include <ctime>
 #include <memory>
-
+using namespace std;
 enum class EstadoPartido {
     PROGRAMADO,
     JUGADO
 };
 
 // Funciones auxiliares para conversión de estado
-std::string estadoToString(EstadoPartido estado);
-EstadoPartido stringToEstado(const std::string& estadoStr);
+string estadoToString(EstadoPartido estado);
+EstadoPartido stringToEstado(const string& estadoStr);
 
 class Partido {
 private:
     int idPartido;
-    std::string equipoLocal;
-    std::string equipoVisitante;
-    std::time_t fechaPartido;
+    string equipoLocal;
+    string equipoVisitante;
+    time_t fechaPartido;
     int golesLocal;
     int golesVisitante;
     EstadoPartido estado;
@@ -26,26 +26,27 @@ private:
 
 public:
     // Constructor para un partido nuevo
-    Partido(const std::string& local, const std::string& visitante);
+    Partido(const string& local, const string& visitante);
 
     // Constructor para deserializar
-    Partido(int id, const std::string& local, const std::string& visitante,
-            std::time_t fecha, int gl, int gv, const std::string& est);
+    Partido(int id, const string& local, const string& visitante,
+            time_t fecha, int gl, int gv, const string& est);
 
     // Getters
     int getId() const;
-    std::time_t getFechaPartido() const;
+    time_t getFechaPartido() const;
     EstadoPartido getEstado() const;
 
     // Métodos de gestión
-    void convocarPartido(std::time_t fecha);
-    void convocarPartido(const std::string& fechaStr); // Sobrecarga
+    void convocarPartido(time_t fecha);
+    void convocarPartido(const string& fechaStr); // Sobrecarga
     void registrarResultado(int local, int visitante);
     void registrarResultado(const std::string& marcador); // Sobrecarga
-    std::string obtenerInfo() const;
+    string obtenerInfo() const;
 
     // Persistencia
-    std::string serializar() const;
-    static std::unique_ptr<Partido> deserializar(const std::string& linea);
+    string serializar() const;
+    string serializarTabla() const;
+    static unique_ptr<Partido> deserializar(const string& linea);
     static void setNextId(int id);
 };

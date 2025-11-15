@@ -3,85 +3,99 @@
 #include <sstream>
 #include <iomanip>
 #include <stdexcept>
-
+using namespace std;
 // Inicialización del ID estático
 int Partido::nextId = 1;
 
 // Funciones auxiliares
-std::string estadoToString(EstadoPartido estado) {
+string estadoToString(EstadoPartido estado) {
     return estado == EstadoPartido::PROGRAMADO ? "PROGRAMADO" : "JUGADO";
 }
 
-EstadoPartido stringToEstado(const std::string& estadoStr) {
+EstadoPartido stringToEstado(const string& estadoStr) {
     if (estadoStr == "PROGRAMADO") return EstadoPartido::PROGRAMADO;
     if (estadoStr == "JUGADO") return EstadoPartido::JUGADO;
-    throw std::invalid_argument("Estado inválido: " + estadoStr);
+    throw invalid_argument("Estado invalido: " + estadoStr);
 }
 
 // Constructor nuevo
-Partido::Partido(const std::string& local, const std::string& visitante)
+Partido::Partido(const string& local, const string& visitante)
     : idPartido(nextId++), equipoLocal(local), equipoVisitante(visitante),
       fechaPartido(0), golesLocal(0), golesVisitante(0), estado(EstadoPartido::PROGRAMADO) {}
 
 // Constructor desde archivo
-Partido::Partido(int id, const std::string& local, const std::string& visitante,
-                 std::time_t fecha, int gl, int gv, const std::string& est)
+Partido::Partido(int id, const string& local, const string& visitante,
+                 time_t fecha, int gl, int gv, const string& est)
     : idPartido(id), equipoLocal(local), equipoVisitante(visitante),
       fechaPartido(fecha), golesLocal(gl), golesVisitante(gv), estado(stringToEstado(est)) {}
 
 int Partido::getId() const { return idPartido; }
-std::time_t Partido::getFechaPartido() const { return fechaPartido; }
+time_t Partido::getFechaPartido() const { return fechaPartido; }
 EstadoPartido Partido::getEstado() const { return estado; }
 
-void Partido::convocarPartido(std::time_t fecha) {
+void Partido::convocarPartido(time_t fecha) {
     fechaPartido = fecha;
     estado = EstadoPartido::PROGRAMADO;
-    std::cout << "📅 Partido convocado para: " << std::put_time(std::localtime(&fecha), "%c") << std::endl;
+    cout << "Partido convocado para: " << put_time(localtime(&fecha), "%c") << endl;
 }
 
-void Partido::convocarPartido(const std::string& fechaStr) {
-    std::tm tm = {};
-    std::istringstream ss(fechaStr);
-    ss >> std::get_time(&tm, "%Y-%m-%d %H:%M:%S");
+void Partido::convocarPartido(const string& fechaStr) {
+    tm tm = {};
+    istringstream ss(fechaStr);
+    //Formato: DD-MM-YYYY HH:MM:SS (día-mes-año)
+    ss >> get_time(&tm, "%d-%m-%Y %H:%M:%S");
     if (ss.fail()) {
-        throw std::invalid_argument("Formato de fecha inválido. Usa 'YYYY-MM-DD HH:MM:SS'.");
+        throw invalid_argument("Formato de fecha invalido. Usa 'DD-MM-YYYY HH:MM:SS'.");
     }
 
-    std::time_t fecha = std::mktime(&tm);
-    convocarPartido(fecha); // Llama a la versión original
+    time_t fecha = mktime(&tm);
+    
+    // Validar que la fecha no sea anterior a hoy
+    time_t ahora = time(nullptr);
+    struct tm* tm_ahora = localtime(&ahora);
+    tm_ahora->tm_hour = 0;
+    tm_ahora->tm_min = 0;
+    tm_ahora->tm_sec = 0;
+    time_t hoy_inicio = mktime(tm_ahora);
+    
+    if (fecha < hoy_inicio) {
+        throw invalid_argument("La fecha del partido no puede ser anterior a hoy.");
+    }
+    
+    convocarPartido(fecha);
 }
 
 void Partido::registrarResultado(int local, int visitante) {
     if (local < 0 || visitante < 0) {
-        throw std::invalid_argument("❌ Los goles no pueden ser negativos.");
+        throw invalid_argument("Los goles no pueden ser negativos.");
     }
     golesLocal = local;
     golesVisitante = visitante;
     estado = EstadoPartido::JUGADO;
-    std::cout << "✅ Resultado registrado: " << equipoLocal << " " << golesLocal
-              << " - " << golesVisitante << " " << equipoVisitante << std::endl;
+    cout << "Resultado registrado: " << equipoLocal << " " << golesLocal
+              << " - " << golesVisitante << " " << equipoVisitante << endl;
 }
 
-void Partido::registrarResultado(const std::string& marcador) {
+void Partido::registrarResultado(const string& marcador) {
     size_t pos = marcador.find('-');
-    if (pos == std::string::npos) {
-        throw std::invalid_argument("Formato de marcador inválido. Usa 'X-Y'.");
+    if (pos == string::npos) {
+        throw invalid_argument("Formato de marcador invalido. Usa 'X-Y'.");
     }
 
-    int local = std::stoi(marcador.substr(0, pos));
-    int visitante = std::stoi(marcador.substr(pos + 1));
+    int local = stoi(marcador.substr(0, pos));
+    int visitante = stoi(marcador.substr(pos + 1));
 
-    registrarResultado(local, visitante); // Llama a la versión original
+    registrarResultado(local, visitante); 
 }
 
-std::string Partido::obtenerInfo() const {
-    std::ostringstream oss;
+string Partido::obtenerInfo() const {
+    ostringstream oss;
     oss << "--- Partido ID: " << idPartido << " ---\n"
         << "Estado: " << estadoToString(estado) << "\n"
-        << "Local: " << equipoLocal << " vs Visitante: " << equipoVisitante << "\n";
+        << equipoLocal << " vs "  << equipoVisitante << "\n";
 
     if (fechaPartido != 0) {
-        oss << "Fecha: " << std::put_time(std::localtime(&fechaPartido), "%c") << "\n";
+        oss << "Fecha: " << put_time(localtime(&fechaPartido), "%d-%m-%Y %H:%M:%S") << "\n";
     } else {
         oss << "Fecha: Por definir\n";
     }
@@ -93,29 +107,59 @@ std::string Partido::obtenerInfo() const {
     return oss.str();
 }
 
-std::string Partido::serializar() const {
-    std::ostringstream oss;
-    oss << idPartido << ";" << equipoLocal << ";" << equipoVisitante << ";"
-        << fechaPartido << ";" << golesLocal << ";" << golesVisitante << ";"
+string Partido::serializar() const {
+    ostringstream oss;
+    oss << idPartido << ";" << equipoLocal << ";" << equipoVisitante << ";";
+    
+    if (fechaPartido != 0) {
+        oss << fechaPartido << ";" 
+            << put_time(localtime(&fechaPartido), "%d-%m-%Y %H:%M:%S") << ";";
+    } else {
+        oss << "0;Sin definir;";
+    }
+    
+    oss << golesLocal << ";" << golesVisitante << ";"
         << estadoToString(estado);
     return oss.str();
 }
 
-std::unique_ptr<Partido> Partido::deserializar(const std::string& linea) {
-    std::istringstream iss(linea);
-    std::string id, local, visitante, fecha, gl, gv, est;
+string Partido::serializarTabla() const {
+    ostringstream oss;
+    oss << setfill(' ')
+        << setw(4) << idPartido << "| "
+        << setw(20) << (equipoLocal.length() > 20 ? equipoLocal.substr(0, 17) + "..." : equipoLocal) << "| "
+        << setw(20) << (equipoVisitante.length() > 20 ? equipoVisitante.substr(0, 17) + "..." : equipoVisitante) << "| ";
+    
+    if (fechaPartido != 0) {
+        oss << setw(19) << put_time(localtime(&fechaPartido), "%d-%m-%Y %H:%M");
+    } else {
+        oss << setw(19) << "Sin definir";
+    }
+    
+    oss << "| "
+        << setw(6) << golesLocal << "| "
+        << setw(6) << golesVisitante << "| "
+        << setw(10) << estadoToString(estado);
+    
+    return oss.str();
+}
 
-    std::getline(iss, id, ';');
-    std::getline(iss, local, ';');
-    std::getline(iss, visitante, ';');
-    std::getline(iss, fecha, ';');
-    std::getline(iss, gl, ';');
-    std::getline(iss, gv, ';');
-    std::getline(iss, est, ';');
+unique_ptr<Partido> Partido::deserializar(const string& linea) {
+    istringstream iss(linea);
+    string id, local, visitante, fecha_ts, fecha_str, gl, gv, est;
 
-    return std::make_unique<Partido>(
-        std::stoi(id), local, visitante, std::stoll(fecha),
-        std::stoi(gl), std::stoi(gv), est
+    getline(iss, id, ';');
+    getline(iss, local, ';');
+    getline(iss, visitante, ';');
+    getline(iss, fecha_ts, ';');
+    getline(iss, fecha_str, ';');  
+    getline(iss, gl, ';');
+    getline(iss, gv, ';');
+    getline(iss, est, ';');
+
+    return make_unique<Partido>(
+        stoi(id), local, visitante, stoll(fecha_ts),
+        stoi(gl), stoi(gv), est
     );
 }
 
