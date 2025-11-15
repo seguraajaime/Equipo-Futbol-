@@ -6,26 +6,29 @@
 #include <string>
 using namespace std;
 
-//  Clase para representar la transacción (el contrato)
+//  Clase para representar el contrato
 class Contrato {
 private:
-    int jugadorDorsal; // [cite: 41] ID del Jugador
-    string equipoNombre; // [cite: 41] ID del Equipo
-    time_t fechaInicio; // [cite: 41]
-    time_t fechaFin; // [cite: 41]
-    double clausula; // [cite: 41] Atributo extra
+    string nombre;
+    string equipoNombre;
+    time_t fechaInicio;
+    time_t fechaFin;
+    double clausula;
+
+    string time_t_a_string(time_t tiempo) const;
 
 public:
-    Contrato(int jDorsal, const string& eNombre, time_t inicio, time_t fin = 0, double clausula = 0.0);
+    Contrato(const string& nombre, const string& eNombre, time_t inicio, time_t fin = 0, double clausula = 0.0);
     
-    int getJugadorDorsal() const;
+    string getnombre() const;
     string getEquipoNombre() const;
     time_t getFechaInicio() const;
     time_t getFechaFin() const;
     double getClausula() const;
-
     void setFechaFin(time_t fecha);
-    
-    string serializar() const; // [cite: 42]
-    static Contrato* deserializar(const string& linea); // [cite: 42]
+    string serializar() const;
+    static Contrato* deserializar(const string& linea);
+
+    string getFechaInicioStr() const;
+    string getFechaFinStr() const;
 };
