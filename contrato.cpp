@@ -149,15 +149,19 @@ void Contrato::guardarEnArchivo(
     const vector<unique_ptr<Contrato>>& contratos, 
     const string& archivo
 ) {
-    ofstream fs(archivo);
+    // Abrir en modo append para no sobrescribir el archivo existente
+    ofstream fs(archivo, ios::app);
     if (!fs.is_open()) {
-        throw runtime_error("Error: No se pudo abrir el archivo para guardar: " + archivo);
+        throw runtime_error("Error: No se pudo abrir el archivo para guardar (append): " + archivo);
     }
 
-    // El bucle interno no cambia, 'contrato' sigue siendo un puntero
+    // Añadir cada contrato al final del archivo
     for (const auto& contrato : contratos) {
         fs << contrato->serializar() << endl;
     }
+
+    fs.close();
+    cout << "Contratos anadidos a: " << archivo << endl;
 }
 
 vector<unique_ptr<Contrato>> Contrato::cargarDesdeArchivo(const string& archivo) {
@@ -186,4 +190,14 @@ vector<unique_ptr<Contrato>> Contrato::cargarDesdeArchivo(const string& archivo)
     
     fs.close();
     return vectorCargado;
+}
+
+// Agrega un contrato al final del archivo (modo append)
+void Contrato::appendToFile(const Contrato& contrato, const string& archivo) {
+    ofstream ofs(archivo, ios::app);
+    if (!ofs.is_open()) {
+        throw runtime_error("Error: No se pudo abrir el archivo para append: " + archivo);
+    }
+    ofs << contrato.serializar() << endl;
+    ofs.close();
 }

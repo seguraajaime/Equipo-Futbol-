@@ -4,14 +4,22 @@
 #include <string>
 #include <stdexcept>
 #include <ctime>
+#include <fstream>
 #include <vector>
 #include <memory>
 using namespace std;
 
 time_t leerFecha(const string& mensaje) {
-    cout << mensaje;
+    cout << mensaje << " (DD/MM/AAAA): ";
+    string fechaStr;
+    cin >> fechaStr;
+    
+    // Parsear formato DD/MM/AAAA
     int dia, mes, anio;
-    cin >> dia >> mes >> anio;
+    if (sscanf(fechaStr.c_str(), "%d/%d/%d", &dia, &mes, &anio) != 3) {
+        cerr << "Formato inválido. Use DD/MM/AAAA" << endl;
+        return 0;
+    }
     
     tm timeinfo = {};
     timeinfo.tm_mday = dia;
@@ -34,7 +42,7 @@ void mostrarMenu() {
     cout << "3. Guardar contratos en archivo" << endl;
     cout << "4. Cargar contratos desde archivo" << endl;
     cout << "5. Salir" << endl;
-    cout << "Seleccione una opción: ";
+    cout << "Seleccione una opcion: ";
 }
 
 int main() {
@@ -63,28 +71,33 @@ int main() {
                 cin >> salario;
                 cin.ignore();
                 
-                time_t fechaInicio = leerFecha("Fecha de inicio (DD MM AAAA): ");
-                time_t fechaFin = leerFecha("Fecha de fin (DD MM AAAA): ");
+                time_t fechaInicio = leerFecha("Fecha de inicio");
+                time_t fechaFin = leerFecha("Fecha de fin");
                 
-                // 1. Crea el puntero inteligente en su propia variable
-                auto nuevoContrato = unique_ptr<Contrato>(new Contrato(nombre, equipo, fechaInicio, fechaFin, salario));
-
-                // 2. Muévelo explícitamente al vector usando std::move
+                // Crear nuevo contrato y agregarlo al vector
+                auto nuevoContrato = make_unique<Contrato>(nombre, equipo, fechaInicio, fechaFin, salario);
+                
+                // Obtener puntero antes de hacer std::move
+                Contrato* contratoPtr = nuevoContrato.get();
+                
+                // Mover al vector
                 contratos.push_back(std::move(nuevoContrato));
                 
-                cout << "\n Contrato creado exitosamente" << endl;
-                cout << "Jugador: " << contratos.back()->getnombre() << endl;
-                cout << "Equipo: " << nuevoContrato->getEquipoNombre() << endl;
-                cout << "Inicio: " << nuevoContrato->getFechaInicioStr() << endl;
-                cout << "Fin: " << nuevoContrato->getFechaFinStr() << endl;
-                cout << "Salario: $" << nuevoContrato->getClausula() << endl;
+                // Mostrar toda la información del contrato creado
+                cout << "\n=== CONTRATO CREADO EXITOSAMENTE ===" << endl;
+                cout << "Jugador: " << contratoPtr->getnombre() << endl;
+                cout << "Equipo: " << contratoPtr->getEquipoNombre() << endl;
+                cout << "Fecha inicio: " << contratoPtr->getFechaInicioStr() << endl;
+                cout << "Fecha fin: " << contratoPtr->getFechaFinStr() << endl;
+                cout << "Salario/Clausula: $" << contratoPtr->getClausula() << endl;
+                cout << "=====================================" << endl;
                 break;
             }
             
             case 2: { // Listar contratos
-                cout << "\n--- CONTRATOS REGISTRADOS ---" << endl;
+                cout << "\n--- CONTRATOS CREADOS ---" << endl;
                 if (contratos.empty()) {
-                    cout << "No hay contratos registrados." << endl;
+                    cout << "No hay contratos registrados en esta sesion." << endl;
                 } else {
                     for (size_t i = 0; i < contratos.size(); i++) {
                         cout << "\n" << i + 1 << ". " << contratos[i]->getnombre() << endl;
@@ -98,13 +111,10 @@ int main() {
             }
             
             case 3: { // Guardar contratos en archivo
-                cout << "\nNombre del archivo (ej: contratos.txt): ";
-                string archivo;
-                getline(cin, archivo);
-                
+                cout << "\nGuardando contratos de esta sesion en: contratos.txt" << endl;
                 try {
-                    Contrato::guardarEnArchivo(contratos, archivo);
-                    cout << "✓ Contratos guardados exitosamente" << endl;
+                    Contrato::guardarEnArchivo(contratos, "contratos.txt");
+                    cout << contratos.size() << " contrato(s) guardado(s) exitosamente" << endl;
                 } catch (const exception& e) {
                     cerr << "Error: " << e.what() << endl;
                 }
@@ -112,14 +122,22 @@ int main() {
             }
             
             case 4: { // Cargar contratos desde archivo
-                cout << "\nNombre del archivo (ej: contratos.txt): ";
-                string archivo;
-                getline(cin, archivo);
-                
+                cout << "\nCargando contratos desde: contratos.txt" << endl;
                 try {
-                contratos.clear();
-                contratos = Contrato::cargarDesdeArchivo(archivo);
-                cout << "✓ Contratos cargados exitosamente" << endl;
+                    auto contratosArchivo = Contrato::cargarDesdeArchivo("contratos.txt");
+                    cout << "\n--- CONTRATOS DEL ARCHIVO ---" << endl;
+                    if (contratosArchivo.empty()) {
+                        cout << "No hay contratos guardados en el archivo." << endl;
+                    } else {
+                        for (size_t i = 0; i < contratosArchivo.size(); i++) {
+                            cout << "\n" << i + 1 << ". " << contratosArchivo[i]->getnombre() << endl;
+                            cout << "   Equipo: " << contratosArchivo[i]->getEquipoNombre() << endl;
+                            cout << "   Inicio: " << contratosArchivo[i]->getFechaInicioStr() << endl;
+                            cout << "   Fin: " << contratosArchivo[i]->getFechaFinStr() << endl;
+                            cout << "   Salario: $" << contratosArchivo[i]->getClausula() << endl;
+                        }
+                        cout << contratosArchivo.size() << " contrato(s) cargado(s) del archivo" << endl;
+                    }
                 } catch (const exception& e) {
                     cerr << "Error: " << e.what() << endl;
                 }
@@ -128,12 +146,12 @@ int main() {
             
             case 5: { // Salir
                 cout << "\nLiberando memoria..." << endl;
-                cout << "¡Hasta luego!" << endl;
+                cout << "Hasta luego!" << endl;
                 return 0;
             }
             
             default:
-                cout << "Opción inválida. Intente de nuevo." << endl;
+                cout << "Opcion invalida. Intente de nuevo." << endl;
         }
     }
     return 0;

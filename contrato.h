@@ -43,4 +43,7 @@ public:
     static std::vector<std::unique_ptr<Contrato>> cargarDesdeArchivo(
         const std::string& archivo
     );
+    
+    // Añade un contrato al archivo en modo append
+    static void appendToFile(const Contrato& contrato, const std::string& archivo);
 };
