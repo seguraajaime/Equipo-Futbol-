@@ -12,10 +12,17 @@ void ficharJugador();
 void mostrarPlantilla();
 void rescindirContratoJugador();
 
-int main() {
-    menu();
-    return 0;
-}
+int main() { 
+    try
+    {
+         menu();
+    }catch(const exception& e)
+    {
+        cerr<< "Error no se pudo abrir jugadores"  << '\n';
+    }
+};
+    
+ 
 
 void menu() {
     int opcion = 0;
@@ -52,33 +59,43 @@ void menu() {
 
 
 void ficharJugador() {
-    int dorsal;
+    string dorsalStr;
     string nombre, posicion;
 
     cout << "\n=== Alta de jugador ===\n";
     cout << "Dorsal: ";
-    cin >> dorsal;
-    cin.ignore();
+    getline(cin, dorsalStr);
+    try
+    {
+        if (dorsalStr.empty())
+        {
+            throw invalid_argument("El dorsal no puede estar vacío");
+        }
 
-    cout << "Nombre: ";
-    getline(cin, nombre);
+        int dorsal = stoi(dorsalStr);
+        cout << "Nombre: ";
+        getline(cin, nombre);
+        cout << "Posicion: ";
+        getline(cin, posicion);
 
-    cout << "Posicion: ";
-    getline(cin, posicion);
+        Jugador j(dorsal, nombre, posicion);
+        j.firmarContrato();
 
-    Jugador j(dorsal, nombre, posicion);
-    j.firmarContrato();
+        ofstream fout("jugadores.txt", ios::app);
+        if (!fout) {
+            cerr << "ERROR: No se pudo abrir jugadores.txt\n";
+            return;
+        }
 
-    ofstream fout("jugadores.txt", ios::app);
-    if (!fout) {
-        cerr << "ERROR: No se pudo abrir jugadores.txt\n";
-        return;
+        fout << j.serializar() << '\n';
+        fout.close();
+
+        cout << "Jugador guardado en jugadores.txt\n";
     }
-
-    fout << j.serializar() << '\n';
-    fout.close();
-
-    cout << "Jugador guardado en jugadores.txt\n";
+    catch(const exception& e)
+    {
+        cerr <<"Error el dorsal ha de ser un numero " << '\n';
+    }
 }
 
 void mostrarPlantilla() {
@@ -95,29 +112,31 @@ void mostrarPlantilla() {
 
     while (getline(fin, linea)) {
         if (linea.empty()) continue;
+        try
+        {
+            Jugador* j = Jugador::deserializar(linea);
+            hayAlmenosUno = true;
 
-        Jugador* j = Jugador::deserializar(linea);
-        hayAlmenosUno = true;
+            fecha f = j->getFechaInicioContrato();
 
-        fecha f = j->getFechaInicioContrato();
-
-        cout << "-------------------------\n";
-        cout << "Dorsal:     " << j->getDorsal() << '\n';
-        cout << "Nombre:     " << j->getNombre() << '\n';
-        cout << "Posicion:   " << j->getPosicion() << '\n';
-        cout << "Disponible: " << (j->estaDisponible() ? "Si" : "No") << '\n';
-        cout << "Fecha inicio contrato: "
-             << f.dia << "/" << f.mes << "/" << f.ano << '\n';
-
-        delete j;
+            cout << "-------------------------\n";
+            cout << "Dorsal:     " << j->getDorsal() << '\n';
+            cout << "Nombre:     " << j->getNombre() << '\n';
+            cout << "Posicion:   " << j->getPosicion() << '\n';
+            cout << "Disponible: " << (j->estaDisponible() ? "Si" : "No") << '\n';
+            cout << "Fecha inicio contrato: " << f.dia << "/" << f.mes << "/" << f.ano << '\n';
+            delete j;
+        }
+        catch(const exception& e)
+        {
+           cerr <<"Linea ignorada por error: "<< '\n';
+        }   
     }
-
     if (!hayAlmenosUno) {
         cout << "No hay jugadores en el archivo.\n";
     };
-
-    
 }
+
 void rescindirContratoJugador() {
     ifstream fin("jugadores.txt");
     if (!fin) {
@@ -125,22 +144,22 @@ void rescindirContratoJugador() {
         return;
     }
 
-    int modo;
+    int opcion2;
     cout << "\nRescindir contrato por:\n";
     cout << "1. Dorsal\n";
     cout << "2. Volver al menu\n";
     cout << "Elige opcion: ";
-    cin >> modo;
+    cin >> opcion2;
     cin.ignore();
 
     int dorsalBuscado = -1;
-    string nombreBuscado;
 
-    if (modo == 1) {
+    if (opcion2 == 1) {
         cout << "Introduce el dorsal: ";
         cin >> dorsalBuscado;
         cin.ignore();
-    } else if (modo == 2) {
+    } else if (opcion2 == 2) {
+        cout << "Volviendo al menu...\n";
         return;
     } else {
         cout << "Opcion no valida.\n";
@@ -155,18 +174,14 @@ void rescindirContratoJugador() {
         if (linea.empty()) continue;
 
         Jugador* j = Jugador::deserializar(linea);
-        bool borrar = false;
 
-        if (modo == 1 && j->getDorsal() == dorsalBuscado) {
-            borrar = true;
-        } 
-
-        if (borrar) {
+        if (j->getDorsal() == dorsalBuscado) {
             encontrado = true;
             cout << "Eliminando: " << j->getNombre()
                  << " (dorsal " << j->getDorsal() << ")\n";
+            // NO guardamos esta línea, así se elimina
         } else {
-            nuevasLineas.push_back(linea);  // mantenemos esta linea
+            nuevasLineas.push_back(linea);  // mantenemos esta línea
         }
 
         delete j;
@@ -179,12 +194,16 @@ void rescindirContratoJugador() {
         return;
     }
 
-    // Sobrescribimos el archivo SOLO con los que se quedan
     ofstream fout("jugadores.txt", ios::trunc);
+    if (!fout) {
+        cerr << "ERROR: No se pudo abrir jugadores.txt para escribir.\n";
+        return;
+    }
+
     for (const string& l : nuevasLineas) {
         fout << l << '\n';
     }
     fout.close();
 
     cout << "Jugador eliminado correctamente.\n";
-}; 
+}

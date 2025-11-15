@@ -39,21 +39,30 @@ string Jugador::serializar() const {
 
 
 Jugador* Jugador::deserializar(const string & linea) {
+    try
+    {
     istringstream iss(linea);
     string sd, nom, pos, sdisp;
     string sdi, smi, sai; 
 
-    getline(iss, sd,   ';');  // dorsal
-    getline(iss, nom,  ';');  // nombre
-    getline(iss, pos,  ';');  // posicion
-    getline(iss, sdisp,';');  // disponible
-    getline(iss, sdi,  ';');  // dia inicio
-    getline(iss, smi,  ';');  // mes inicio
-    getline(iss, sai,  ';');  // año inicio
+    if(!getline(iss, sd,   ';')) throw invalid_argument("Falta dorsal");  
+    if(!getline(iss, nom,  ';')) throw invalid_argument("Falta nombre");  
+    if(!getline(iss, pos,  ';')) throw invalid_argument("Falta posicion");  
+    if(!getline(iss, sdisp,';')) throw invalid_argument("Falta disponible");  
+    if(!getline(iss, sdi,  ';')) throw invalid_argument("Falta dia inicio");  
+    if(!getline(iss, smi,  ';')) throw invalid_argument("Falta mes inicio");  
+    if(!getline(iss, sai,  ';')) throw invalid_argument("Falta ano inicio");  
 
 
-    Jugador* j = new Jugador(std::stoi(sd), nom, pos);
+    Jugador* j = new Jugador(stoi(sd), nom, pos);
     j->disponible          = (sdisp == "1");
-    j->fechaInicioContrato = fecha(std::stoi(sdi), std::stoi(smi), std::stoi(sai));
+    j->fechaInicioContrato = fecha(stoi(sdi), stoi(smi), stoi(sai));
     return j;
+    }
+    catch(const std::exception& e)
+    {
+        throw runtime_error("Error al deserializar jugador: " + linea + " (" + e.what() + ")");
+    }
+    
+    
 }
