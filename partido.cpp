@@ -48,7 +48,7 @@ void Partido::convocarPartido(const string& fechaStr) {
     istringstream ss(fechaStr);
     // Intentar varios formatos comunes: con '-' o '/' y con o sin segundos
     bool parsed = false;
-    // Try: DD/MM/YYYY HH:MM
+    // DD/MM/YYYY HH:MM
     ss.str(fechaStr);
     ss.clear();
     ss >> get_time(&tm, "%d/%m/%Y %H:%M");

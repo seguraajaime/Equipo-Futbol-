@@ -716,7 +716,7 @@ void crearPartido() {
     guardarPartidosEnArchivo();   
 }
 
-void convocarPartido() { // REVISAR
+void convocarPartido() { 
     cout << "\n=== CONVOCAR PARTIDO ===" << endl;
     if (g_partidos.empty()) {
         cout << "No hay partidos creados." << endl;
@@ -760,7 +760,7 @@ void convocarPartido() { // REVISAR
     // La fecha ya se guarda al llamar a guardarPartidosEnArchivo()
 }
 
-void registrarResultadoPartido() { // REVISAR
+void registrarResultadoPartido() { 
     cout << "\n=== REGISTRAR RESULTADO PARTIDO ===" << endl;
     if (g_partidos.empty()) {
         cout << "No hay partidos creados." << endl;
@@ -836,7 +836,7 @@ void verPartidos() {
     }
 }
 
-void guardarPartidosEnArchivo() { // Revisar 
+void guardarPartidosEnArchivo() {
     cout << "\nGuardando partidos en archivo (sobrescribiendo)..." << endl;
     ofstream ofs("partidos.txt", ios::trunc);
     if (!ofs) {
@@ -851,7 +851,7 @@ void guardarPartidosEnArchivo() { // Revisar
     cout << g_partidos.size() << " partidos escritos en partidos.txt" << endl;
 }
 
-void cargarPartidosDesdeArchivo() { // Revisar
+void cargarPartidosDesdeArchivo() { 
     cout << "\nCargando partidos desde archivo..." << endl;
     ifstream ifs("partidos.txt");
     if (!ifs) {
