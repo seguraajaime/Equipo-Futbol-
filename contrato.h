@@ -10,21 +10,19 @@ using namespace std;
 class Contrato {
 private:
     int dorsal;
-    string equipoNombre;
     time_t fechaInicio;
     time_t fechaFin;
-    double clausula;
+    double salario;
 
     string time_t_a_string(time_t tiempo) const;
 
 public:
-    Contrato(int dorsal, const string& eNombre, time_t inicio, time_t fin = 0, double clausula = 0.0);
+    Contrato(int dorsal, time_t inicio, time_t fin = 0, double salario = 0.0);
     
     int getDorsal() const;
-    string getEquipoNombre() const;
     time_t getFechaInicio() const;
     time_t getFechaFin() const;
-    double getClausula() const;
+    double getSalario() const;
     void setFechaFin(time_t fecha);
     string serializar() const;
     static Contrato* deserializar(const string& linea);

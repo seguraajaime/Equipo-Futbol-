@@ -6,4 +6,3 @@
 1;Iago Aspas;POR;1;14;11;2025
 3;Luka Modric;MC;1;14;11;2025
 2;Pedri;Mediocentro;1;16;11;2025
-23;Militao;defensa;1;16;11;2025

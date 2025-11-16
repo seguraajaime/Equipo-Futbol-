@@ -34,12 +34,23 @@ void menuPartidos();
 void ficharJugador();
 void mostrarPlantilla();
 void rescindirContratoJugador();
+void crearContrato();
+void verContratos();
+void guardarContratosEnArchivo();
+void verContratosMemoria();
+void cargarPartidosDesdeArchivo();
+void guardarPartidosEnArchivo();
+void crearPartido();
+void verPartidos();
+void registrarResultadoPartido();
+void convocarPartido();
 // ------------------------------------
 
 // === FUNCIÓN PRINCIPAL ===
 int main() { 
-    // Cargar los datos al inicio del programa
+    // Cargar los datos 
     cargarPlantillaInicial();
+    cargarPartidosDesdeArchivo();
 
     try {
         menu();
@@ -53,13 +64,8 @@ int main() {
     return 0;
 }
 
-// === IMPLEMENTACIÓN DE LA LÓGICA DE GESTIÓN ===
-
-// [NOTA: Aquí he movido toda la clase GestorPartidos para limpiar el archivo,
-// pero tú la deberías tener en 'GestorPartidos.h' y 'GestorPartidos.cpp']
 
 // === FUNCIONES DE MENÚ PRINCIPAL ===
-
 void menu() {
     int opcion = 0;
     do {
@@ -74,7 +80,6 @@ void menu() {
         cout << "4. Salir" << endl;
         cout << "\nElige una opcion: ";
         
-        // **CORRECCIÓN DE INPUT**
         if (!(cin >> opcion)) {
             cout << "Opcion no valida (debe ser un numero).\n";
             cin.clear();
@@ -94,8 +99,6 @@ void menu() {
                 menuPartidos();
                 break;
             case 4:
-                // Guardar la plantilla antes de salir
-                guardarPlantillaEnArchivo();
                 cout << "\nHasta luego! Gracias por usar el sistema de gestion." << endl;
                 break;
             default:
@@ -111,11 +114,11 @@ void menu() {
 void cargarPlantillaInicial() {
     // Carga jugadores desde archivo `jugadores.txt` evitando duplicados
     cout << "Cargando datos iniciales...\n";
-    // Informar ruta de trabajo para depuracion
+    
     try {
-        cout << "Directorio actual: " << std::filesystem::current_path().string() << '\n';
+        cout << "Directorio actual: " << filesystem::current_path().string() << '\n';
     } catch (...) {
-        // ignore if filesystem not available
+       
     }
 
     if (!std::filesystem::exists("jugadores.txt")) {
@@ -227,11 +230,7 @@ void menuJugadores() {
 
     } while (opcion != 4);
 }
-
 void ficharJugador() {
-    // **NOTA:** Esta función necesita ser refactorizada para usar g_plantilla.
-    // He eliminado la lógica de archivo y la he adaptado para añadir a la RAM.
-    
     string dorsalStr;
     string nombre, posicion;
 
@@ -245,29 +244,36 @@ void ficharJugador() {
         }
 
         int dorsal = stoi(dorsalStr);
-        // Aquí deberías comprobar si el dorsal ya existe en g_plantilla
-        
+
+        // --- COMPROBAR DORSAL REPETIDO ---
+        for (const auto& jugPtr : g_plantilla) {
+            if (jugPtr && jugPtr->getDorsal() == dorsal) {
+                throw runtime_error(
+                    "El dorsal " + to_string(dorsal) +
+                    " ya esta ocupado por '" + jugPtr->getNombre() + "'."
+                );
+            }
+        }
+
         cout << "Nombre: ";
         getline(cin, nombre);
         cout << "Posicion: ";
         getline(cin, posicion);
 
-        // Creamos el jugador con puntero inteligente (buena práctica)
         auto nuevoJugador = make_unique<Jugador>(dorsal, nombre, posicion);
-        nuevoJugador->firmarContrato(); // Firmar contrato
+        nuevoJugador->firmarContrato();
         
-        // Añadir a la plantilla en RAM
         g_plantilla.push_back(std::move(nuevoJugador)); 
         
-        // Guardamos todo el estado al archivo después del cambio (seguridad)
         guardarPlantillaEnArchivo(); 
 
         cout << "Jugador '" << nombre << "' fichado y guardado.\n";
         
     } catch(const exception& e) {
-        cerr <<"Error al fichar jugador: " << e.what() << '\n';
+        cerr << "Error al fichar jugador: " << e.what() << '\n';
     }
 }
+
 
 void mostrarPlantilla() {
     // Muestra la plantilla desde la RAM (g_plantilla)
@@ -381,7 +387,7 @@ void menuContratos() {
     do {
         cout << "\n--- MENU CONTRATOS ---" << endl;
         cout << "1. Crear Contrato" << endl;
-        cout << "2. Ver Contratos" << endl;
+        cout << "2. Ver Contratos creados" << endl;
         cout << "3. Guardar Contratos en archivo" << endl;
         cout << "4. Cargar Contratos desde archivo" << endl;
         cout << "5. Volver al menu principal" << endl;
@@ -397,52 +403,104 @@ void menuContratos() {
         
         switch (opcion) {
         case 1: {
-            cout << "\n=== CREAR NUEVO CONTRATO ===" << endl;
-            int dorsal;
-            string equipo;
-            double salario;
-            
-            cout << "Dorsal del jugador: ";
-            cin >> dorsal;
-            cin.ignore();
-            
-            // Buscar el jugador en g_plantilla
-            Jugador* jugadorEncontrado = nullptr;
-            for (auto& j : g_plantilla) {
-                if (j->getDorsal() == dorsal) {
-                    jugadorEncontrado = j.get();
-                    break;
-                }
-            }
-            
-            if (!jugadorEncontrado) {
-                cerr << "Error: No existe jugador con dorsal " << dorsal << " en la plantilla.\n";
-                break;
-            }
-            
-            cout << "Equipo de procedencia: ";
-            getline(cin, equipo);
-            cout << "Salario/Clausula: ";
-            cin >> salario;
-            cin.ignore();
-            
-            time_t fechaInicio = leerFechaFormato("Fecha de inicio");
-            time_t fechaFin = leerFechaFormato("Fecha de fin");
-            
-            auto nuevoContrato = make_unique<Contrato>(dorsal, equipo, fechaInicio, fechaFin, salario);
-            Contrato* contPtr = nuevoContrato.get();
-            g_contratos.push_back(std::move(nuevoContrato));
-            
-            cout << "\nCONTRATO CREADO:" << endl;
-            cout << "  Jugador: " << jugadorEncontrado->getNombre() << " (dorsal " << dorsal << ")" << endl;
-            cout << "  Equipo: " << contPtr->getEquipoNombre() << endl;
-            cout << "  Inicio: " << contPtr->getFechaInicioStr() << endl;
-            cout << "  Fin: " << contPtr->getFechaFinStr() << endl;
-            cout << "  Salario: $" << contPtr->getClausula() << endl;
+            crearContrato();
             break;
         }
         case 2: {
-            cout << "\n--- CONTRATOS EN MEMORIA ---" << endl;
+            verContratos();
+            break;
+        }
+        case 3: {
+            guardarContratosEnArchivo();
+            break;
+        }
+        case 4: {
+            verContratosMemoria();
+            break;
+        }
+        case 5:
+            cout << "Volviendo al menu principal..." << endl;
+            break;
+        default:
+            cout << "Opcion no valida." << endl;
+        }
+    } while (opcion != 5);
+}
+void crearContrato() {
+    cout << "\n=== CREAR NUEVO CONTRATO ===" << endl;
+
+    try {
+        int dorsal;
+        double salario;
+
+        cout << "Dorsal del jugador: ";
+        cin >> dorsal;
+        cin.ignore();
+
+        // Buscar el jugador en g_plantilla
+        Jugador* jugadorEncontrado = nullptr;
+        for (auto& j : g_plantilla) {
+            if (j->getDorsal() == dorsal) {
+                jugadorEncontrado = j.get();
+                break;
+            }
+        }
+
+        if (!jugadorEncontrado) {
+            throw runtime_error(
+                "No existe jugador con dorsal " + to_string(dorsal) + " en la plantilla."
+            );
+        }
+
+        cout << "Salario: ";
+        cin >> salario;
+        cin.ignore();
+
+        time_t fechaInicio = leerFechaFormato("Fecha de inicio");
+        time_t fechaFin    = leerFechaFormato("Fecha de fin");
+        time_t ahora = time(nullptr); 
+
+        // 1) La fecha de inicio no puede ser anterior a hoy
+        if (fechaInicio < ahora) {
+            throw invalid_argument(
+                "La fecha de inicio del contrato no puede ser anterior a hoy."
+            );
+        }
+
+        // 2) La fecha de fin debe ser posterior a la de inicio
+        if (fechaFin <= fechaInicio) {
+            throw invalid_argument(
+                "La fecha de fin del contrato debe ser posterior a la fecha de inicio."
+            );
+        }
+
+        // Si las fechas son válidas, creamos el contrato
+        auto nuevoContrato = make_unique<Contrato>(dorsal, fechaInicio, fechaFin, salario);
+        Contrato* contPtr = nuevoContrato.get();
+        g_contratos.push_back(move(nuevoContrato));
+
+        cout << "\nCONTRATO CREADO:" << endl;
+        cout << "  Jugador: " << jugadorEncontrado->getNombre()
+             << " (dorsal " << dorsal << ")" << endl;
+        cout << "  Inicio: " << contPtr->getFechaInicioStr() << endl;
+        cout << "  Fin: " << contPtr->getFechaFinStr() << endl;
+        cout << "  Salario: $" << contPtr->getSalario() << endl;
+    }
+    catch (const invalid_argument& e) {
+        cerr << "Error en las fechas del contrato: " << e.what() << '\n';
+    }
+    catch (const runtime_error& e) {
+        cerr << "Error al crear contrato: " << e.what() << '\n';
+    }
+    catch (const exception& e) {
+        cerr << "Error inesperado al crear contrato: " << e.what() << '\n';
+    }
+}
+
+void verContratos() {
+
+
+    cout << "\n--- CONTRATOS EN MEMORIA ---" << endl;
             if (g_contratos.empty()) {
                 cout << "No hay contratos." << endl;
             } else {
@@ -457,26 +515,15 @@ void menuContratos() {
                     }
                     
                     cout << "\n" << i+1 << ". Dorsal " << g_contratos[i]->getDorsal() << " - " << nombreJugador << endl;
-                    cout << "   Equipo: " << g_contratos[i]->getEquipoNombre() << endl;
                     cout << "   Inicio: " << g_contratos[i]->getFechaInicioStr() << endl;
                     cout << "   Fin: " << g_contratos[i]->getFechaFinStr() << endl;
-                    cout << "   Salario: $" << g_contratos[i]->getClausula() << endl;
+                    cout << "   Salario: $" << g_contratos[i]->getSalario() << endl;
                 }
             }
-            break;
         }
-        case 3: {
-            cout << "\nGuardando contratos en archivo..." << endl;
-            try {
-                Contrato::guardarEnArchivo(g_contratos, "contratos.txt");
-                cout << g_contratos.size() << " contratos guardados" << endl;
-            } catch (const exception& e) {
-                cerr << "Error: " << e.what() << endl;
-            }
-            break;
-        }
-        case 4: {
-            cout << "\nCargando contratos desde archivo..." << endl;
+
+void verContratosMemoria() {
+    cout << "\nCargando contratos desde archivo..." << endl;
             try {
                 auto cargados = Contrato::cargarDesdeArchivo("contratos.txt");
 
@@ -514,10 +561,9 @@ void menuContratos() {
                         }
                         
                         cout << "\n" << i+1 << ". Dorsal " << g_contratos[i]->getDorsal() << " - " << nombreJugador << endl;
-                        cout << "   Equipo: " << g_contratos[i]->getEquipoNombre() << endl;
                         cout << "   Inicio: " << g_contratos[i]->getFechaInicioStr() << endl;
                         cout << "   Fin: " << g_contratos[i]->getFechaFinStr() << endl;
-                        cout << "   Salario: $" << g_contratos[i]->getClausula() << endl;
+                        cout << "   Salario: $" << g_contratos[i]->getSalario() << endl;
                     }
                 }
 
@@ -525,29 +571,29 @@ void menuContratos() {
             } catch (const exception& e) {
                 cerr << "Error: " << e.what() << endl;
             }
-            break;
-        }
-        case 5:
-            cout << "Volviendo al menu principal..." << endl;
-            break;
-        default:
-            cout << "Opcion no valida." << endl;
-        }
-    } while (opcion != 5);
 }
+
+void guardarContratosEnArchivo() {
+   cout << "\nGuardando contratos en archivo..." << endl;
+            try {
+                Contrato::guardarEnArchivo(g_contratos, "contratos.txt");
+                cout << g_contratos.size() << " contratos guardados" << endl;
+            } catch (const exception& e) {
+                cerr << "Error: " << e.what() << endl;
+            }
+        }
+// === MENU PARTIDOS ===
 
 void menuPartidos() {
     int opcion;
     
     do {
         cout << "\n--- MENU PARTIDOS ---" << endl;
-        cout << "1. Crear Partido" << endl;
-        cout << "2. Convocar Partido" << endl;
-        cout << "3. Registrar Resultado" << endl;
-        cout << "4. Ver Partidos" << endl;
-        cout << "5. Guardar Partidos en archivo" << endl;
-        cout << "6. Cargar Partidos desde archivo" << endl;
-        cout << "7. Volver al menu principal" << endl;
+        cout << "1. Crear partido" << endl;
+        cout << "2. Convocar partido" << endl;
+        cout << "3. Registrar resultado" << endl;
+        cout << "4. Ver todos los partidos" << endl;
+        cout << "5. Volver al menu principal" << endl;
         cout << "Selecciona una opcion: ";
         
         if (!(cin >> opcion)) {
@@ -559,176 +605,241 @@ void menuPartidos() {
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         
         switch (opcion) {
-        case 1: {
-            cout << "\n=== CREAR NUEVO PARTIDO ===" << endl;
-            string rival, resp;
-            const string ourTeam = "Canadio";
-            
-            cout << "Nombre del equipo rival: ";
-            getline(cin, rival);
-            cout << "Somos locales? (s/n): ";
-            getline(cin, resp);
-            
-            string local, visitante;
-            if (!resp.empty() && (resp[0] == 's' || resp[0] == 'S')) {
-                local = ourTeam;
-                visitante = rival;
-            } else {
-                local = rival;
-                visitante = ourTeam;
-            }
-            
-            auto nuevoPartido = make_unique<Partido>(local, visitante);
-            cout << "Partido creado." << endl;
-            g_partidos.push_back(std::move(nuevoPartido));
+        case 1:
+            crearPartido();
             break;
-        }
-        case 2: {
-            cout << "\n=== CONVOCAR PARTIDO ===" << endl;
-            if (g_partidos.empty()) {
-                cout << "No hay partidos creados." << endl;
-                break;
-            }
-            cout << "Partidos disponibles:" << endl;
-            for (size_t i = 0; i < g_partidos.size(); i++) {
-                cout << i+1 << ". " << g_partidos[i]->getEquipoLocal() << " vs " << g_partidos[i]->getEquipoVisitante() << endl;
-            }
-            cout << "Selecciona partido (numero): ";
-            int idx;
-            cin >> idx;
-            cin.ignore();
-            if (idx > 0 && idx <= (int)g_partidos.size()) {
-                cout << "Fecha y hora (DD/MM/YYYY HH:MM): ";
-                string fecha;
-                getline(cin, fecha);
-                try {
-                    g_partidos[idx-1]->convocarPartido(fecha);
-                    cout << "Partido convocado para: " << fecha << endl;
-                } catch (const exception& e) {
-                    cerr << "Error: " << e.what() << endl;
-                }
-            } else {
-                cout << "Seleccion invalida." << endl;
-            }
+        case 2:
+            convocarPartido();
             break;
-        }
-        case 3: {
-            cout << "\n=== REGISTRAR RESULTADO ===" << endl;
-            if (g_partidos.empty()) {
-                cout << "No hay partidos creados." << endl;
-                break;
-            }
-            cout << "Partidos disponibles:" << endl;
-            for (size_t i = 0; i < g_partidos.size(); i++) {
-                cout << i+1 << ". " << g_partidos[i]->getEquipoLocal() << " vs " << g_partidos[i]->getEquipoVisitante() << endl;
-            }
-            cout << "Selecciona partido (numero): ";
-            int idx;
-            cin >> idx;
-            cin.ignore();
-            if (idx > 0 && idx <= (int)g_partidos.size()) {
-                int golesLocal, golesVisitante;
-                cout << "Goles del equipo local: ";
-                cin >> golesLocal;
-                cout << "Goles del equipo visitante: ";
-                cin >> golesVisitante;
-                cin.ignore();
-                try {
-                    g_partidos[idx-1]->registrarResultado(golesLocal, golesVisitante);
-                    cout << "Resultado registrado: " << golesLocal << " - " << golesVisitante << endl;
-                } catch (const exception& e) {
-                    cerr << "Error: " << e.what() << endl;
-                }
-            } else {
-                cout << "Seleccion invalida." << endl;
-            }
+        case 3:
+            registrarResultadoPartido();
             break;
-        }
-        case 4: {
-            cout << "\n--- PARTIDOS EN MEMORIA ---" << endl;
-            if (g_partidos.empty()) {
-                cout << "No hay partidos." << endl;
-            } else {
-                for (size_t i = 0; i < g_partidos.size(); i++) {
-                    cout << "\n" << i+1 << ". " << g_partidos[i]->getEquipoLocal() << " vs " << g_partidos[i]->getEquipoVisitante() << endl;
-                    
-                    // Mostrar fecha
-                    time_t fecha = g_partidos[i]->getFechaPartido();
-                    string fechaStr = (fecha == 0) ? "Por definir" : time_t_a_string(fecha);
-                    cout << "   Fecha: " << fechaStr << endl;
-                    
-                    // Mostrar estado y resultado
-                    cout << "   Estado: " << estadoToString(g_partidos[i]->getEstado()) << endl;
-                    if (g_partidos[i]->getEstado() == EstadoPartido::JUGADO) {
-                        cout << "   Resultado: " << g_partidos[i]->getGolesLocal() << " - " 
-                             << g_partidos[i]->getGolesVisitante() << endl;
-                    }
-                }
-            }
+        case 4:
+            verPartidos();        
             break;
-        }
-        case 5: {
-            cout << "\nGuardando partidos en archivo..." << endl;
-            ofstream ofs("partidos.txt", ios::trunc);
-            if (!ofs) {
-                cerr << "Error: No se pudo abrir partidos.txt" << endl;
-            } else {
-                for (const auto& p : g_partidos) {
-                    ofs << p->serializar() << endl;
-                }
-                ofs.close();
-                cout << g_partidos.size() << " partidos guardados" << endl;
-            }
-            break;
-        }
-        case 6: {
-            cout << "\nCargando partidos desde archivo..." << endl;
-            ifstream ifs("partidos.txt");
-            if (!ifs) {
-                cerr << "No se pudo abrir partidos.txt" << endl;
-            } else {
-                string linea;
-                int count = 0;
-                // Calcular el mayor ID ya existente en memoria para mantener nextId
-                int highestId = 0;
-                for (const auto &exist : g_partidos) if (exist->getId() > highestId) highestId = exist->getId();
-
-                while (getline(ifs, linea)) {
-                    if (linea.empty()) continue;
-                    // Trim CR
-                    if (!linea.empty() && linea.back() == '\r') linea.pop_back();
-                    try {
-                        auto p = Partido::deserializar(linea);
-                        if (p) {
-                            // Evitar duplicados por ID
-                            bool existe = false;
-                            for (const auto &exist : g_partidos) {
-                                if (exist->getId() == p->getId()) { existe = true; break; }
-                            }
-                            if (!existe) {
-                                  cout << ++count << ". " << p->getEquipoLocal() << " vs " << p->getEquipoVisitante() << endl;
-                                // Actualizar highestId
-                                if (p->getId() > highestId) highestId = p->getId();
-                                g_partidos.push_back(std::move(p));
-                            }
-                        }
-                    } catch (const exception& e) {
-                        cerr << "Error deserializando: " << e.what() << endl;
-                    }
-                }
-                // Establecer nextId a highestId+1 para evitar colisiones
-                Partido::setNextId(highestId + 1);
-                ifs.close();
-                cout << "\n" << count << " partidos cargados (se actualizaron IDs)" << endl;
-            }
-            break;
-        }
-        case 7:
+        case 5:
             cout << "Volviendo al menu principal..." << endl;
             break;
         default:
             cout << "Opcion no valida." << endl;
         }
-    } while (opcion != 7);
+    } while (opcion != 5);
 }
 
+// === CREAR PARTIDO ===
+
+void crearPartido() {
+    cout << "\n=== CREAR NUEVO PARTIDO ===" << endl;
+    string rival, resp;
+    const string ourTeam = "Canadio";
+            
+    cout << "Nombre del equipo rival: ";
+    getline(cin, rival);
+    cout << "Somos locales? (s/n): ";
+    getline(cin, resp);
+            
+    string local, visitante;
+    if (!resp.empty() && (resp[0] == 's' || resp[0] == 'S')) {
+        local = ourTeam;
+        visitante = rival;
+    } else {
+        local = rival;
+        visitante = ourTeam;
+    }
+            
+    auto nuevoPartido = make_unique<Partido>(local, visitante);
+    cout << "Partido creado." << endl;
+    g_partidos.push_back(std::move(nuevoPartido));
+
+    // Guardar inmediatamente el partido nuevo en el archivo SIN borrar lo anterior
+    guardarPartidosEnArchivo();   // guarda todo en modo append
+}
+
+// === CONVOCAR PARTIDO ===
+
+void convocarPartido() {
+    cout << "\n=== CONVOCAR PARTIDO ===" << endl;
+    if (g_partidos.empty()) {
+        cout << "No hay partidos creados." << endl;
+        return;
+    }
+
+    cout << "Partidos disponibles:" << endl;
+    for (size_t i = 0; i < g_partidos.size(); i++) {
+        cout << i+1 << ". " 
+             << g_partidos[i]->getEquipoLocal() 
+             << " vs " 
+             << g_partidos[i]->getEquipoVisitante() << endl;
+    }
+
+    cout << "Selecciona partido (numero): ";
+    int idx;
+    if (!(cin >> idx)) {
+        cout << "Entrada invalida.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
+    cin.ignore();
+
+    if (idx > 0 && idx <= (int)g_partidos.size()) {
+        cout << "Fecha y hora (DD/MM/YYYY HH:MM): ";
+        string fecha;
+        getline(cin, fecha);
+        try {
+            cout << "Partido convocado para: " << fecha << endl;
+        } catch (const exception& e) {
+            cerr << "Error: " << e.what() << endl;
+        }
+    } else {
+        cout << "Seleccion invalida." << endl;
+    }
+    guardarPartidosEnArchivo();
+}
+
+// === REGISTRAR RESULTADO PARTIDO ===
+
+void registrarResultadoPartido() {
+    cout << "\n=== REGISTRAR RESULTADO PARTIDO ===" << endl;
+    if (g_partidos.empty()) {
+        cout << "No hay partidos creados." << endl;
+        return;
+    }
+
+    cout << "Partidos disponibles:" << endl;
+    for (size_t i = 0; i < g_partidos.size(); i++) {
+        cout << i+1 << ". " 
+             << g_partidos[i]->getEquipoLocal() 
+             << " vs " 
+             << g_partidos[i]->getEquipoVisitante() << endl;
+    }
+
+    cout << "Selecciona partido (numero): ";
+    int idx;
+    if (!(cin >> idx)) {
+        cout << "Entrada invalida.\n";
+        cin.clear();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        return;
+    }
+    cin.ignore();
+
+    if (idx > 0 && idx <= (int)g_partidos.size()) {
+        int golesLocal, golesVisitante;
+        cout << "Goles " << g_partidos[idx-1]->getEquipoLocal() << ": ";
+        cin >> golesLocal;
+        cout << "Goles " << g_partidos[idx-1]->getEquipoVisitante() << ": ";
+        cin >> golesVisitante;
+        cin.ignore();
+        try {
+            g_partidos[idx-1]->registrarResultado(golesLocal, golesVisitante);
+            cout << "Resultado registrado: " 
+                 << golesLocal << " - " << golesVisitante << endl;
+            // si quisieras sobrescribir el archivo con el nuevo estado:
+            // guardarPartidosEnArchivo();
+        } catch (const exception& e) {
+            cerr << "Error: " << e.what() << endl;
+        }
+    } else {
+        cout << "Seleccion invalida." << endl;
+    }
+    guardarPartidosEnArchivo();
+}
+
+// === VER PARTIDOS (CARGANDO DESDE ARCHIVO) ===
+
+void verPartidos() {
+    cout << "\nCargando partidos desde archivo..." << endl;
+
+    cout << "\n--- PARTIDOS EN MEMORIA (DESDE ARCHIVO) ---" << endl;
+    if (g_partidos.empty()) {
+        cout << "No hay partidos." << endl;
+    } else {
+        for (size_t i = 0; i < g_partidos.size(); i++) {
+            cout << "\n" << i+1 << ". " 
+                 << g_partidos[i]->getEquipoLocal() 
+                 << " vs " 
+                 << g_partidos[i]->getEquipoVisitante() << endl;
+                    
+            // Mostrar fecha
+            time_t fecha = g_partidos[i]->getFechaPartido();
+            string fechaStr = (fecha == 0) ? "Por definir" : time_t_a_string(fecha);    
+            cout << "   Fecha: " << fechaStr << endl;
+                    
+            // Mostrar estado y resultado
+            cout << "   Estado: " << estadoToString(g_partidos[i]->getEstado()) << endl;
+            if (g_partidos[i]->getEstado() == EstadoPartido::JUGADO) {
+                cout << "   Resultado: " 
+                     << g_partidos[i]->getGolesLocal() << " - " 
+                     << g_partidos[i]->getGolesVisitante() << endl;
+            }
+        }
+    }
+}
+
+// === GUARDAR PARTIDOS EN ARCHIVO (NO BORRA) ===
+// La mantengo aunque con otro comportamiento: ahora AÑADE en vez de truncar.
+
+void guardarPartidosEnArchivo() {
+    cout << "\nGuardando partidos en archivo (append)..." << endl;
+    ofstream ofs("partidos.txt", ios::app);   // 👈 APPEND: NO BORRA EL ARCHIVO
+    if (!ofs) {
+        cerr << "Error: No se pudo abrir partidos.txt" << endl;
+    } else {
+        for (const auto& p : g_partidos) {
+            ofs << p->serializar() << endl;
+        }
+        ofs.close();
+        cout << g_partidos.size() << " partidos escritos al final de partidos.txt" << endl;
+    }
+}
+
+// === CARGAR PARTIDOS DESDE ARCHIVO (SIN BORRAR NADA) ===
+
+void cargarPartidosDesdeArchivo() {
+    ifstream ifs("partidos.txt");
+    if (!ifs) {
+        cerr << "No se pudo abrir partidos.txt" << endl;
+        return;
+    }
+
+    string linea;
+    int count = 0;
+
+    // Calcular el mayor ID ya existente en memoria para mantener nextId
+    int highestId = 0;
+    for (const auto &exist : g_partidos)
+        if (exist->getId() > highestId) highestId = exist->getId();
+
+    while (getline(ifs, linea)) {
+        if (linea.empty()) continue;
+        // Trim CR
+        if (!linea.empty() && linea.back() == '\r') linea.pop_back();
+        try {
+            auto p = Partido::deserializar(linea);
+            if (p) {
+                // Evitar duplicados por ID
+                bool existe = false;
+                for (const auto &exist : g_partidos) {
+                    if (exist->getId() == p->getId()) { 
+                        existe = true; 
+                        break; 
+                    }
+                }
+                if (!existe) {
+                    // Actualizar highestId
+                    if (p->getId() > highestId) highestId = p->getId();
+                    g_partidos.push_back(std::move(p));
+                    ++count;
+                }
+            }
+        } catch (const exception& e) {
+            cerr << "Error deserializando: " << e.what() << endl;
+        }
+    }
+
+    // Establecer nextId a highestId+1 para evitar colisiones
+    Partido::setNextId(highestId + 1);
+    ifs.close();
+    cout << count << " partidos cargados desde archivo." << endl;
+}

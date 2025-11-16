@@ -6,13 +6,7 @@
 *.dll
 build/
 
-# =================================
-# Archivos de datos generados
-# =================================
-# Ignora los archivos de datos que genera tu programa
-partidos.txt
-partidos_tabla.txt
-*.log
+
 
 # =================================
 # Configuración local del editor

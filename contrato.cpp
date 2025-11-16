@@ -9,15 +9,12 @@
 using namespace std;
 
 //Constructor
-Contrato::Contrato(int d, const string& en, time_t inicio, time_t fin, double c)
-    : dorsal(d), equipoNombre(en), fechaInicio(inicio), fechaFin(fin), clausula(c) {}
+Contrato::Contrato(int d, time_t inicio, time_t fin, double c)
+    : dorsal(d), fechaInicio(inicio), fechaFin(fin), salario(c) {}
 
 //Getters y Setters
 int Contrato::getDorsal() const { 
     return dorsal; 
-}
-string Contrato::getEquipoNombre() const { 
-    return equipoNombre; 
 }
 time_t Contrato::getFechaInicio() const { 
     return fechaInicio; 
@@ -25,8 +22,8 @@ time_t Contrato::getFechaInicio() const {
 time_t Contrato::getFechaFin() const { 
     return fechaFin; 
 }
-double Contrato::getClausula() const { 
-    return clausula; 
+double Contrato::getSalario() const { 
+    return salario; 
 }
 void Contrato::setFechaFin(time_t fecha) { 
     fechaFin = fecha; 
@@ -37,19 +34,18 @@ void Contrato::setFechaFin(time_t fecha) {
 //Serializar
 string Contrato::serializar() const {
     ostringstream oss;
-    oss << dorsal << ";" << equipoNombre << ";" << fechaInicio << ";" << fechaFin << ";" << clausula;
+    oss << dorsal << ";" << fechaInicio << ";" << fechaFin << ";" << salario;
     return oss.str();
 }
 
 //Deserializar
 Contrato* Contrato::deserializar(const string& linea) {
     istringstream iss(linea);
-    string sd, en, fi, ff, cl;
+    string sd, fi, ff, cl;
 
 //Estoy verificando que existan todos los campos
    if(
     !getline(iss, sd, ';') ||
-    !getline(iss, en, ';') ||
     !getline(iss, fi, ';') ||
     !getline(iss, ff, ';') ||
     !getline(iss, cl, ';'))
@@ -65,9 +61,9 @@ Contrato* Contrato::deserializar(const string& linea) {
         int dorsal = stoi(sd);
         time_t inicio = stoll(fi);
         time_t fin = stoll (ff);
-        double clausula = stod(cl);
+        double salario = stod(cl);
     //Si no hay errores, crea y devuelve el nuevo objeto
-        return new Contrato(dorsal, en, inicio, fin, clausula);
+        return new Contrato(dorsal, inicio, fin, salario);
     }
     catch(const std::exception& e)
     {

@@ -1,0 +1,4 @@
+1;Canadio;barsa;0;Sin definir;0;0;PROGRAMADO
+2;Canadio;madrid;0;Sin definir;0;0;PROGRAMADO
+3;Canadio;juve;0;Sin definir;0;0;PROGRAMADO
+4;atalanta;Canadio;0;Sin definir;0;0;PROGRAMADO
