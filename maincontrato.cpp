@@ -21,7 +21,7 @@ time_t leerFecha(const string& mensaje) {
     
     time_t fecha = mktime(&timeinfo);
     if (fecha == -1) {
-        cerr << "Fecha inválida. Intente de nuevo." << endl;
+        cerr << "Fecha invalida. Intente de nuevo." << endl;
         return 0;
     }
     return fecha;
@@ -34,7 +34,7 @@ void mostrarMenu() {
     cout << "3. Guardar contratos en archivo" << endl;
     cout << "4. Cargar contratos desde archivo" << endl;
     cout << "5. Salir" << endl;
-    cout << "Seleccione una opción: ";
+    cout << "Seleccione una opcion: ";
 }
 
 int main() {
@@ -65,11 +65,11 @@ int main() {
                 
                 time_t fechaInicio = leerFecha("Fecha de inicio (DD MM AAAA): ");
                 time_t fechaFin = leerFecha("Fecha de fin (DD MM AAAA): ");
-                
-                // 1. Crea el puntero inteligente en su propia variable
+               
+                // Crear el contrato usando el unique_ptr
                 auto nuevoContrato = unique_ptr<Contrato>(new Contrato(nombre, equipo, fechaInicio, fechaFin, salario));
 
-                // 2. Muévelo explícitamente al vector usando std::move
+                // Moverlo al vector
                 contratos.push_back(std::move(nuevoContrato));
                 
                 cout << "\n Contrato creado exitosamente" << endl;
@@ -104,7 +104,7 @@ int main() {
                 
                 try {
                     Contrato::guardarEnArchivo(contratos, archivo);
-                    cout << "✓ Contratos guardados exitosamente" << endl;
+                    cout << "Contratos guardados exitosamente" << endl;
                 } catch (const exception& e) {
                     cerr << "Error: " << e.what() << endl;
                 }
@@ -119,7 +119,7 @@ int main() {
                 try {
                 contratos.clear();
                 contratos = Contrato::cargarDesdeArchivo(archivo);
-                cout << "✓ Contratos cargados exitosamente" << endl;
+                cout << "Contratos cargados exitosamente" << endl;
                 } catch (const exception& e) {
                     cerr << "Error: " << e.what() << endl;
                 }
@@ -128,12 +128,12 @@ int main() {
             
             case 5: { // Salir
                 cout << "\nLiberando memoria..." << endl;
-                cout << "¡Hasta luego!" << endl;
+                cout << "Hasta luego!" << endl;
                 return 0;
             }
             
             default:
-                cout << "Opción inválida. Intente de nuevo." << endl;
+                cout << "Opcion invalida. Intente de nuevo." << endl;
         }
     }
     return 0;

@@ -93,58 +93,6 @@ string Contrato::getFechaFinStr() const {
 }
 
 // Guarda todos los contratos en un archivo txt
-/**void Contrato::guardarEnArchivo(const vector<Contrato*>& contratos, const string& ruta) {
-    ofstream ofs(ruta, ios::trunc);
-    if (!ofs.is_open()) {
-        throw runtime_error("Error: No se pudo abrir el archivo " + ruta + " para escribir.");
-    }
-    
-    for (const auto& contrato : contratos) {
-        if (contrato != nullptr) {
-            ofs << contrato->serializar() << endl;
-        }
-    }
-    
-    ofs.close();
-    cout << "Contratos guardados exitosamente en: " << ruta << endl;
-}
-
-// Carga todos los contratos desde un archivo txt
-vector<Contrato*> Contrato::cargarDesdeArchivo(const string& ruta) {
-    vector<Contrato*> contratos;
-    ifstream ifs(ruta);
-    
-    if (!ifs.is_open()) {
-        throw runtime_error("Error: No se pudo abrir el archivo " + ruta + " para leer.");
-    }
-    
-    string linea;
-    int lineaNum = 0;
-    
-    while (getline(ifs, linea)) {
-        lineaNum++;
-        
-        // Ignorar líneas vacías
-        if (linea.empty()) continue;
-        
-        try {
-            Contrato* contrato = Contrato::deserializar(linea);
-            if (contrato != nullptr) {
-                contratos.push_back(contrato);
-            } else {
-                cerr << "Advertencia: Línea " << lineaNum << " no se pudo deserializar correctamente." << endl;
-            }
-        } catch (const exception& e) {
-            cerr << "Error en línea " << lineaNum << ": " << e.what() << endl;
-        }
-    }
-    
-    ifs.close();
-    cout << "Se cargaron " << contratos.size() << " contratos desde: " << ruta << endl;
-    
-    return contratos;
-}**/
-
 void Contrato::guardarEnArchivo(
     const vector<unique_ptr<Contrato>>& contratos, 
     const string& archivo
@@ -160,9 +108,10 @@ void Contrato::guardarEnArchivo(
     }
 }
 
+// Carga todos los contratos desde un archivo txt
 vector<unique_ptr<Contrato>> Contrato::cargarDesdeArchivo(const string& archivo) {
     
-    // 1. Creamos el vector "seguro" que vamos a devolver
+    //Creamos el vector que vamos a devolver
     vector<unique_ptr<Contrato>> vectorCargado;
     ifstream fs(archivo);
 
@@ -174,12 +123,9 @@ vector<unique_ptr<Contrato>> Contrato::cargarDesdeArchivo(const string& archivo)
     while (getline(fs, linea)) {
         if (linea.empty()) continue;
 
-        // 2. 'deserializar' nos da un puntero "crudo" (peligroso)
         Contrato* ptr = Contrato::deserializar(linea);
 
         if (ptr != nullptr) {
-            // 3. Lo "adoptamos" con un unique_ptr y lo metemos al vector
-            // Esto transfiere la responsabilidad de 'delete' al vector.
             vectorCargado.push_back(unique_ptr<Contrato>(ptr));
         }
     }
