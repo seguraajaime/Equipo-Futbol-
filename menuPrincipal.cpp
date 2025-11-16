@@ -25,6 +25,8 @@ vector<unique_ptr<Partido>> g_partidos; // partidos.txt
 time_t leerFecha(const string& mensaje);
 void cargarPlantillaInicial();
 void guardarPlantillaEnArchivo();
+void ordenarArchivoJugadoresPorDorsal();
+void ordenarArchivoContratosPorDorsal();
 void menu();
 void menuJugadores();
 void menuContratos();
@@ -168,7 +170,41 @@ void guardarPlantillaEnArchivo() {
         ofs << j->serializar() << '\n';
     }
     ofs.close();
+    ordenarArchivoJugadoresPorDorsal();
     cout << "Plantilla guardada (" << g_plantilla.size() << " jugadores)\n";
+}
+
+void ordenarArchivoJugadoresPorDorsal() {
+    // Lee jugadores.txt, ordena por dorsal y guarda de nuevo
+    vector<string> lineas;
+    ifstream ifs("jugadores.txt");
+    if (!ifs.is_open()) return;
+    
+    string linea;
+    while (getline(ifs, linea)) {
+        if (!linea.empty()) {
+            lineas.push_back(linea);
+        }
+    }
+    ifs.close();
+    
+    // Ordenar por dorsal
+    sort(lineas.begin(), lineas.end(), [](const string& a, const string& b) {
+        try {
+            int dorsalA = stoi(a.substr(0, a.find(';')));
+            int dorsalB = stoi(b.substr(0, b.find(';')));
+            return dorsalA < dorsalB;
+        } catch (...) {
+            return false;
+        }
+    });
+    
+    // Guardar ordenado
+    ofstream ofs_out("jugadores.txt", ios::trunc);
+    for (const auto& l : lineas) {
+        ofs_out << l << '\n';
+    }
+    ofs_out.close();
 }
 
 void menuJugadores() {
@@ -245,7 +281,8 @@ void ficharJugador() {
         
         g_plantilla.push_back(std::move(nuevoJugador)); 
         
-        guardarPlantillaEnArchivo(); 
+        guardarPlantillaEnArchivo();
+        ordenarArchivoJugadoresPorDorsal();
 
         cout << "Jugador '" << nombre << "' fichado y guardado.\n";
         
@@ -262,15 +299,36 @@ void mostrarPlantilla() {
         return;
     }
 
+    // Cargar contratos desde archivo para comprobar la disponibilidad
+    vector<unique_ptr<Contrato>> contratosArchivo;
+    try {
+        contratosArchivo = Contrato::cargarDesdeArchivo("contratos.txt");
+    } catch (...) {
+        // Si no existe archivo, seguimos sin contratos
+    }
+
     for (const auto& j : g_plantilla) {
-        // vemos si tiene contrato
-        bool tieneContrato = false;
+        // Verificar si tiene contrato asociado en memoria
+        bool tieneContratoMemoria = false;
         for (const auto& c : g_contratos) {
             if (c->getDorsal() == j->getDorsal()) {
-                tieneContrato = true;
+                tieneContratoMemoria = true;
                 break;
             }
         }
+        
+        // Verificar si tiene contrato en contratos.txt (archivo)
+        bool tieneContratoArchivo = false;
+        for (const auto& c : contratosArchivo) {
+            if (c->getDorsal() == j->getDorsal()) {
+                tieneContratoArchivo = true;
+                break;
+            }
+        }
+        
+        // El jugador esta disponible si tiene contrato en memoria O en archivo
+        bool tieneContrato = tieneContratoMemoria || tieneContratoArchivo;
+        
         cout << "-------------------------\n";
         cout << "Dorsal:     " << j->getDorsal() << '\n';
         cout << "Nombre:     " << j->getNombre() << '\n';
@@ -298,7 +356,7 @@ void rescindirContratoJugador() {
         if ((*it)->getDorsal() == dorsalBuscado) {
             cout << "Rescindiendo contrato de: " << (*it)->getNombre() << " (dorsal " << dorsalBuscado << ")\n";
             
-            // eliminamos el contrato del jugador
+            // eliminamos el contrato del jugador de memoria
             auto itContratos = g_contratos.begin();
             while (itContratos != g_contratos.end()) {
                 if ((*itContratos)->getDorsal() == dorsalBuscado) {
@@ -306,6 +364,27 @@ void rescindirContratoJugador() {
                 } else {
                     ++itContratos;
                 }
+            }
+            
+            // eliminamos el contrato del jugador de contratos.txt
+            try {
+                auto contratosArchivo = Contrato::cargarDesdeArchivo("contratos.txt");
+                vector<unique_ptr<Contrato>> contratosActualizados;
+                
+                for (auto& c : contratosArchivo) {
+                    if (c->getDorsal() != dorsalBuscado) {
+                        contratosActualizados.push_back(move(c));
+                    }
+                }
+                
+                // Sobrescribir contratos.txt con los contratos sin el jugador rescindido
+                ofstream archivoContratos("contratos.txt");
+                for (const auto& c : contratosActualizados) {
+                    archivoContratos << c->serializar() << "\n";
+                }
+                archivoContratos.close();
+            } catch (...) {
+                // Si hay error al leer contratos.txt, continuar de todas formas
             }
             
             it = g_plantilla.erase(it); // borra al jugador
@@ -442,6 +521,12 @@ void crearContrato() {
 
         // 🔹 Guardar AUTOMÁTICAMENTE este contrato en contratos.txt (sin borrar lo anterior)
         Contrato::appendToFile(*contPtr, "contratos.txt");
+        // 🔹 Asegurarse de que el archivo quede ordenado por dorsal
+        try {
+            Contrato::ordenarArchivoPorDorsal("contratos.txt");
+        } catch (...) {
+            // No fatal: si falla el ordenado, seguimos con el programa
+        }
 
         cout << "\nCONTRATO CREADO:" << endl;
         cout << "  Jugador: " << jugadorEncontrado->getNombre()
@@ -472,6 +557,12 @@ void verContratos() {
             return;
         }
 
+        // Ordenar contratos por dorsal de menor a mayor
+        sort(contratosArchivo.begin(), contratosArchivo.end(),
+            [](const unique_ptr<Contrato>& a, const unique_ptr<Contrato>& b) {
+                return a->getDorsal() < b->getDorsal();
+            });
+
         for (size_t i = 0; i < contratosArchivo.size(); ++i) {
             const auto& c = contratosArchivo[i];
 
@@ -484,8 +575,8 @@ void verContratos() {
                 }
             }
 
-            cout << "\n" << i+1 << ". Dorsal " << c->getDorsal()
-                 << " - " << nombreJugador << endl;
+              // Mostrar con el dorsal como numero principal: "<dorsal>. <NombreJugador>"
+              cout << "\n" << c->getDorsal() << ". " << nombreJugador << endl;
             cout << "   Inicio: " << c->getFechaInicioStr() << endl;
             cout << "   Fin: "    << c->getFechaFinStr() << endl;
             cout << "   Salario: $" << c->getSalario() << endl;
@@ -655,14 +746,18 @@ void convocarPartido() { // REVISAR
         string fecha;
         getline(cin, fecha);
         try {
+            // Convocar el partido con la fecha introducida (la función validará el formato)
+            g_partidos[idx-1]->convocarPartido(fecha);
+            // Guardar inmediatamente para que la fecha quede persistida
+            guardarPartidosEnArchivo();
             cout << "Partido convocado para: " << fecha << endl;
         } catch (const exception& e) {
-            cerr << "Error: " << e.what() << endl;
+            cerr << "Error al convocar partido: " << e.what() << endl;
         }
     } else {
         cout << "Seleccion invalida." << endl;
     }
-    // deberia de funcionar para que se guarde que el partido tiene fecha y hora (guardarPartidosEnArchivo();)
+    // La fecha ya se guarda al llamar a guardarPartidosEnArchivo()
 }
 
 void registrarResultadoPartido() { // REVISAR
@@ -701,8 +796,8 @@ void registrarResultadoPartido() { // REVISAR
             g_partidos[idx-1]->registrarResultado(golesLocal, golesVisitante);
             cout << "Resultado registrado: " 
                  << golesLocal << " - " << golesVisitante << endl;
-            // si quisieras sobrescribir el archivo con el nuevo estado:
-            // guardarPartidosEnArchivo();
+            // Sobrescribir el archivo con el nuevo estado para persistir el resultado
+            guardarPartidosEnArchivo();
         } catch (const exception& e) {
             cerr << "Error: " << e.what() << endl;
         }
@@ -742,17 +837,18 @@ void verPartidos() {
 }
 
 void guardarPartidosEnArchivo() { // Revisar 
-    cout << "\nGuardando partidos en archivo (append)..." << endl;
-    ofstream ofs("partidos.txt", ios::app);
+    cout << "\nGuardando partidos en archivo (sobrescribiendo)..." << endl;
+    ofstream ofs("partidos.txt", ios::trunc);
     if (!ofs) {
         cerr << "Error: No se pudo abrir partidos.txt" << endl;
-    } else {
-        for (const auto& p : g_partidos) {
-            ofs << p->serializar() << endl;
-        }
-        ofs.close();
-        cout << g_partidos.size() << " partidos escritos al final de partidos.txt" << endl;
+        return;
     }
+
+    for (const auto& p : g_partidos) {
+        ofs << p->serializar() << endl;
+    }
+    ofs.close();
+    cout << g_partidos.size() << " partidos escritos en partidos.txt" << endl;
 }
 
 void cargarPartidosDesdeArchivo() { // Revisar
@@ -797,4 +893,12 @@ void cargarPartidosDesdeArchivo() { // Revisar
     Partido::setNextId(highestId + 1);
     ifs.close();
     cout << count << " partidos cargados desde archivo." << endl;
+
+    // Reescribir el archivo para eliminar duplicados existentes y asegurar
+    // que el archivo refleja el estado en memoria (fecha/goles actualizados)
+    try {
+        guardarPartidosEnArchivo();
+    } catch (...) {
+        // Si por alguna razon no se puede sobrescribir, no interrumpimos la ejecucion
+    }
 }

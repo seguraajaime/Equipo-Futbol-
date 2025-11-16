@@ -6,6 +6,7 @@
 #include <ctime>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 //Constructor
@@ -107,6 +108,9 @@ void Contrato::guardarEnArchivo(
 
     fs.close();
     cout << "Contratos guardados en: " << archivo << endl;
+    
+    // Ordenar por dorsal
+    Contrato::ordenarArchivoPorDorsal(archivo);
 }
 
 // Carga todos los contratos desde un archivo txt
@@ -146,4 +150,37 @@ void Contrato::appendToFile(const Contrato& contrato, const string& archivo) {
     }
     ofs << contrato.serializar() << endl;
     ofs.close();
+}
+
+void Contrato::ordenarArchivoPorDorsal(const string& archivo) {
+    // Lee contratos del archivo, ordena por dorsal y guarda de nuevo
+    vector<string> lineas;
+    ifstream ifs(archivo);
+    if (!ifs.is_open()) return;
+    
+    string linea;
+    while (getline(ifs, linea)) {
+        if (!linea.empty()) {
+            lineas.push_back(linea);
+        }
+    }
+    ifs.close();
+    
+    // Ordenar por dorsal (primer campo separado por ;)
+    sort(lineas.begin(), lineas.end(), [](const string& a, const string& b) {
+        try {
+            int dorsalA = stoi(a.substr(0, a.find(';')));
+            int dorsalB = stoi(b.substr(0, b.find(';')));
+            return dorsalA < dorsalB;
+        } catch (...) {
+            return false;
+        }
+    });
+    
+    // Guardar ordenado
+    ofstream ofs_out(archivo, ios::trunc);
+    for (const auto& l : lineas) {
+        ofs_out << l << '\n';
+    }
+    ofs_out.close();
 }

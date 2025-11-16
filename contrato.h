@@ -42,4 +42,7 @@ public:
     
     // Añade un contrato al archivo en modo append
     static void appendToFile(const Contrato& contrato, const std::string& archivo);
+    
+    // Ordena el archivo de contratos por dorsal
+    static void ordenarArchivoPorDorsal(const std::string& archivo);
 };

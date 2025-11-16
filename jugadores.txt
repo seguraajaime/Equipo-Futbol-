@@ -1,8 +1,25 @@
-9;Antonio Gomez;DC;1;14;11;2025
-10;Jaime Segura;MCO;1;14;11;2025
-22;Carlos Rodriguez;DFC;1;14;11;2025
-11;Diego Cid;MC;1;14;11;2025
-88;Alejandro Marquez;LD;1;14;11;2025
-1;Iago Aspas;POR;1;14;11;2025
-3;Luka Modric;MC;1;14;11;2025
-2;Pedri;Mediocentro;1;16;11;2025
+1;Iago Aspas;POR;1;16;11;2025
+2;Pedri;MC;1;16;11;2025
+3;Luka Modric;MC;1;16;11;2025
+4;Antonio Gomez;DC;1;16;11;2025
+5;Jaime Segura;MCO;1;16;11;2025
+6;Fellaini;MC;1;16;11;2025
+7;Cristiano R.;DC;1;16;11;2025
+8;Toni Kroos;MC;1;16;11;2025
+9;Morata;DC;1;16;11;2025
+10;Lionel Messi;MCO;1;16;11;2025
+11;Vinicius Jr.;EI;1;16;11;2025
+12;Carlos Rodriguez;DFC;1;16;11;2025
+13;Alejandro Marquez;LD;1;16;11;2025
+14;Diego Cid;MC;1;16;11;2025
+15;Marco Alonso;DFI;1;16;11;2025
+16;Juan Martin;DC;1;16;11;2025
+17;Lucas Vazquez;ED;1;16;11;2025
+18;Raul Jimenez;DEL;1;16;11;2025
+19;David Villa;DC;1;16;11;2025
+20;Daniel Olmo;MCO;1;16;11;2025
+21;Xavi Alonso;MC;1;16;11;2025
+22;Sergio Ramos;DFC;1;16;11;2025
+23;Peter Crouch;DC;1;16;11;2025
+24;Manuel Rico;LI;1;16;11;2025
+25;Pablo Bernal;MCO;1;16;11;2025
