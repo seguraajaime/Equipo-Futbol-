@@ -33,8 +33,6 @@ public:
     string getFechaFinStr() const;
     
     // Métodos para guardar y cargar archivos
-    //static void guardarEnArchivo(const vector<Contrato*>& contratos, const string& ruta);
-    //static vector<Contrato*> cargarDesdeArchivo(const string& ruta);
     static void guardarEnArchivo(
         const std::vector<std::unique_ptr<Contrato>>& contratos, 
         const std::string& archivo

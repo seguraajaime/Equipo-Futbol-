@@ -29,7 +29,7 @@ time_t leerFecha(const string& mensaje) {
     
     time_t fecha = mktime(&timeinfo);
     if (fecha == -1) {
-        cerr << "Fecha inválida. Intente de nuevo." << endl;
+        cerr << "Fecha invalida. Intente de nuevo." << endl;
         return 0;
     }
     return fecha;
@@ -71,25 +71,24 @@ int main() {
                 cin >> salario;
                 cin.ignore();
                 
-                time_t fechaInicio = leerFecha("Fecha de inicio");
-                time_t fechaFin = leerFecha("Fecha de fin");
-                
-                // Crear nuevo contrato y agregarlo al vector
-                auto nuevoContrato = make_unique<Contrato>(nombre, equipo, fechaInicio, fechaFin, salario);
-                
-                // Obtener puntero antes de hacer std::move
-                Contrato* contratoPtr = nuevoContrato.get();
-                
-                // Mover al vector
+
+                time_t fechaInicio = leerFecha("Fecha de inicio (DD MM AAAA): ");
+                time_t fechaFin = leerFecha("Fecha de fin (DD MM AAAA): ");
+               
+                // Crear el contrato usando el unique_ptr
+                auto nuevoContrato = unique_ptr<Contrato>(new Contrato(nombre, equipo, fechaInicio, fechaFin, salario));
+
+                // Moverlo al vector
+
                 contratos.push_back(std::move(nuevoContrato));
                 
                 // Mostrar toda la información del contrato creado
                 cout << "\n=== CONTRATO CREADO EXITOSAMENTE ===" << endl;
-                cout << "Jugador: " << contratoPtr->getnombre() << endl;
-                cout << "Equipo: " << contratoPtr->getEquipoNombre() << endl;
-                cout << "Fecha inicio: " << contratoPtr->getFechaInicioStr() << endl;
-                cout << "Fecha fin: " << contratoPtr->getFechaFinStr() << endl;
-                cout << "Salario/Clausula: $" << contratoPtr->getClausula() << endl;
+                cout << "Jugador: " << contratos.back()->getnombre() << endl;
+                cout << "Equipo: " << contratos.back()->getEquipoNombre() << endl;
+                cout << "Inicio: " << contratos.back()->getFechaInicioStr() << endl;
+                cout << "Fin: " << contratos.back()->getFechaFinStr() << endl;
+                cout << "Salario: $" << contratos.back()->getClausula() << endl;
                 cout << "=====================================" << endl;
                 break;
             }
