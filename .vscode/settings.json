@@ -89,6 +89,8 @@
     "deque": "cpp",
     "__functional_03": "cpp",
     "__nullptr": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "string_view": "cpp",
+    "span": "cpp"
   }
 }

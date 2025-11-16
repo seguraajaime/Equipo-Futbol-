@@ -43,7 +43,6 @@ void verPartidos();
 void registrarResultadoPartido();
 void convocarPartido();
 
-
 int main() { 
     // añadir las memorias iniciales
     cargarPlantillaInicial();
@@ -54,8 +53,6 @@ int main() {
         cerr << "Error no esperado en el menu principal: " << e.what() << '\n';
     }
 }
-
-
 
 void menu() {
     // imprimir por pantalla el menu 
@@ -257,7 +254,6 @@ void ficharJugador() {
     }
 }
 
-
 void mostrarPlantilla() {
     cout << "\n=== Lista de jugadores (Desde RAM) ===\n";
 
@@ -349,7 +345,6 @@ time_t leerFechaFormato(const string& mensaje) { // para poder escribir la fecha
     return fecha;
 }
 
-
 string time_t_a_string(time_t tiempo) { // pasamos de time_t a string
     if (tiempo == 0) return "Por definir";
     tm* ltm = localtime(&tiempo);
@@ -364,10 +359,8 @@ void menuContratos() {
     do {
         cout << "\n--- MENU CONTRATOS ---" << endl;
         cout << "1. Crear Contrato" << endl;
-        cout << "2. Ver Contratos creados" << endl;
-        cout << "3. Guardar Contratos en archivo" << endl;
-        cout << "4. Cargar Contratos desde archivo" << endl;
-        cout << "5. Volver al menu principal" << endl;
+        cout << "2. Ver Contratos (desde contratos.txt)" << endl;
+        cout << "3. Volver al menu principal" << endl;
         cout << "Selecciona una opcion: ";
         
         if (!(cin >> opcion)) {
@@ -379,29 +372,19 @@ void menuContratos() {
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         
         switch (opcion) {
-        case 1: {
+        case 1:
             crearContrato();
             break;
-        }
-        case 2: {
-            verContratos();
+        case 2:
+            verContratos();   
             break;
-        }
-        case 3: {
-            guardarContratosEnArchivo();
-            break;
-        }
-        case 4: {
-            verContratosMemoria();
-            break;
-        }
-        case 5:
+        case 3:
             cout << "Volviendo al menu principal..." << endl;
             break;
         default:
             cout << "Opcion no valida." << endl;
         }
-    } while (opcion != 5);
+    } while (opcion != 3);
 }
 
 void crearContrato() {
@@ -413,7 +396,7 @@ void crearContrato() {
 
         cout << "Dorsal del jugador: ";
         cin >> dorsal;
-        cin.ignore();
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
         // Buscar el jugador en g_plantilla
         Jugador* jugadorEncontrado = nullptr;
@@ -435,7 +418,7 @@ void crearContrato() {
         cin.ignore();
 
         time_t fechaInicio = leerFechaFormato("Fecha de inicio");
-        time_t fechaFin    = leerFechaFormato("Fecha de fin");
+        time_t fechaFin = leerFechaFormato("Fecha de fin");
         time_t ahora = time(nullptr); 
 
         // 1) La fecha de inicio no puede ser anterior a hoy
@@ -452,10 +435,13 @@ void crearContrato() {
             );
         }
 
-        // Si las fechas son válidas, creamos el contrato
+        // Si las fechas son válidas, creamos el contrato en memoria
         auto nuevoContrato = make_unique<Contrato>(dorsal, fechaInicio, fechaFin, salario);
         Contrato* contPtr = nuevoContrato.get();
         g_contratos.push_back(move(nuevoContrato));
+
+        // 🔹 Guardar AUTOMÁTICAMENTE este contrato en contratos.txt (sin borrar lo anterior)
+        Contrato::appendToFile(*contPtr, "contratos.txt");
 
         cout << "\nCONTRATO CREADO:" << endl;
         cout << "  Jugador: " << jugadorEncontrado->getNombre()
@@ -476,29 +462,39 @@ void crearContrato() {
 }
 
 void verContratos() {
+    cout << "\n--- CONTRATOS LEIDOS DESDE contratos.txt ---" << endl;
 
+    try {
+        auto contratosArchivo = Contrato::cargarDesdeArchivo("contratos.txt");
 
-    cout << "\n--- CONTRATOS EN MEMORIA ---" << endl;
-            if (g_contratos.empty()) {
-                cout << "No hay contratos." << endl;
-            } else {
-                for (size_t i = 0; i < g_contratos.size(); i++) {
-                    // Buscar nombre del jugador por dorsal
-                    string nombreJugador = "(Desconocido)";
-                    for (const auto& j : g_plantilla) {
-                        if (j->getDorsal() == g_contratos[i]->getDorsal()) {
-                            nombreJugador = j->getNombre();
-                            break;
-                        }
-                    }
-                    
-                    cout << "\n" << i+1 << ". Dorsal " << g_contratos[i]->getDorsal() << " - " << nombreJugador << endl;
-                    cout << "   Inicio: " << g_contratos[i]->getFechaInicioStr() << endl;
-                    cout << "   Fin: " << g_contratos[i]->getFechaFinStr() << endl;
-                    cout << "   Salario: $" << g_contratos[i]->getSalario() << endl;
+        if (contratosArchivo.empty()) {
+            cout << "No hay contratos en el archivo." << endl;
+            return;
+        }
+
+        for (size_t i = 0; i < contratosArchivo.size(); ++i) {
+            const auto& c = contratosArchivo[i];
+
+            // Buscar nombre del jugador por dorsal
+            string nombreJugador = "(Desconocido)";
+            for (const auto& j : g_plantilla) {
+                if (j->getDorsal() == c->getDorsal()) {
+                    nombreJugador = j->getNombre();
+                    break;
                 }
             }
+
+            cout << "\n" << i+1 << ". Dorsal " << c->getDorsal()
+                 << " - " << nombreJugador << endl;
+            cout << "   Inicio: " << c->getFechaInicioStr() << endl;
+            cout << "   Fin: "    << c->getFechaFinStr() << endl;
+            cout << "   Salario: $" << c->getSalario() << endl;
         }
+
+    } catch (const exception& e) {
+        cerr << "Error al leer contratos desde archivo: " << e.what() << endl;
+    }
+}
 
 void verContratosMemoria() {
     cout << "\nCargando contratos desde archivo..." << endl;
