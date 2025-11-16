@@ -17,13 +17,11 @@
 
 using namespace std;
 
-// === DECLARACIONES GLOBALES DE GESTORES ===
-vector<unique_ptr<Jugador>> g_plantilla; // Lista de jugadores en memoria
-vector<unique_ptr<Contrato>> g_contratos; // Lista de contratos en memoria
-vector<unique_ptr<Partido>> g_partidos; // Lista de partidos en memoria
+vector<unique_ptr<Jugador>> g_plantilla; //jugador.txt
+vector<unique_ptr<Contrato>> g_contratos; // contratos.txt
+vector<unique_ptr<Partido>> g_partidos; // partidos.txt
 
-// === DECLARACIONES DE FUNCIONES ===
-// (Implementaciones al final)
+//todas las funciones que se usan en el menu principal
 time_t leerFecha(const string& mensaje);
 void cargarPlantillaInicial();
 void guardarPlantillaEnArchivo();
@@ -44,29 +42,23 @@ void crearPartido();
 void verPartidos();
 void registrarResultadoPartido();
 void convocarPartido();
-// ------------------------------------
 
-// === FUNCIÓN PRINCIPAL ===
+
 int main() { 
-    // Cargar los datos 
+    // añadir las memorias iniciales
     cargarPlantillaInicial();
     cargarPartidosDesdeArchivo();
-
     try {
         menu();
     } catch(const exception& e) {
         cerr << "Error no esperado en el menu principal: " << e.what() << '\n';
     }
-
-    // Guardar los datos al salir (solo si se sale por opción 4)
-    // Nota: El guardar se hará al salir del menú.
-    
-    return 0;
 }
 
 
-// === FUNCIONES DE MENÚ PRINCIPAL ===
+
 void menu() {
+    // imprimir por pantalla el menu 
     int opcion = 0;
     do {
         cout << "\n";
@@ -109,19 +101,14 @@ void menu() {
     } while (opcion != 4);
 }
 
-// === LÓGICA DE CARGA Y GUARDADO ===
-
-void cargarPlantillaInicial() {
-    // Carga jugadores desde archivo `jugadores.txt` evitando duplicados
+void cargarPlantillaInicial() { // se carga jugadore.txt
     cout << "Cargando datos iniciales...\n";
-    
     try {
         cout << "Directorio actual: " << filesystem::current_path().string() << '\n';
     } catch (...) {
-       
+        cout << "No se pudo abrir jugadores.txt.\n";
     }
-
-    if (!std::filesystem::exists("jugadores.txt")) {
+    if (!filesystem::exists("jugadores.txt")) {
         cout << "No existe archivo jugadores.txt en el directorio actual, se saltara la carga inicial.\n";
         return;
     }
@@ -148,7 +135,7 @@ void cargarPlantillaInicial() {
             Jugador* j = Jugador::deserializar(linea);
             if (j == nullptr) continue;
 
-            // Comprobar si dorsal ya existe en memoria
+            // Comprobar si dorsal ya existe
             bool existe = false;
             for (const auto& existing : g_plantilla) {
                 if (existing->getDorsal() == j->getDorsal()) {
@@ -157,11 +144,11 @@ void cargarPlantillaInicial() {
                 }
             }
 
-            if (!existe) {
+            if (!existe) {// Solo añadir si no existe
                 g_plantilla.push_back(std::unique_ptr<Jugador>(j));
                 ++cargados;
             } else {
-                delete j; // ya existía
+                delete j; 
             }
         } catch (const exception& e) {
             cerr << "Error al deserializar jugador: " << e.what() << "\n";
@@ -172,7 +159,7 @@ void cargarPlantillaInicial() {
 }
 
 void guardarPlantillaEnArchivo() {
-    // Guarda el contenido de g_plantilla en jugadores.txt (sobrescribe)
+    // Guarda el contenido de g_plantilla en jugadores.txt
     cout << "Guardando plantilla en jugadores.txt...\n";
     ofstream ofs("jugadores.txt", ios::trunc);
     if (!ofs.is_open()) {
@@ -187,20 +174,16 @@ void guardarPlantillaEnArchivo() {
     cout << "Plantilla guardada (" << g_plantilla.size() << " jugadores)\n";
 }
 
-// === FUNCIONES DE MENÚ JUGADORES ===
-
 void menuJugadores() {
     int opcion = 0;
     do {
-        // ... (Tu código de menú Jugadores aquí)
+        // se imprime menu jugadores 
         cout << "\n--- MENU JUGADORES ---" << endl;
         cout << "1. Fichar jugador" << endl;
         cout << "2. Ver plantilla" << endl;
         cout << "3. Rescindir contrato" << endl;
         cout << "4. Volver al menu principal" << endl;
         cout << "Elige una opcion: ";
-        
-        // **CORRECCIÓN DE INPUT**
         if (!(cin >> opcion)) {
             cout << "Opcion no valida (debe ser un numero).\n";
             cin.clear();
@@ -209,7 +192,6 @@ void menuJugadores() {
         }
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         
-        // ... (Tu switch con los casos 1, 2, 3, 4)
         switch (opcion) {
             case 1:
                  ficharJugador();
@@ -230,6 +212,7 @@ void menuJugadores() {
 
     } while (opcion != 4);
 }
+
 void ficharJugador() {
     string dorsalStr;
     string nombre, posicion;
@@ -245,7 +228,7 @@ void ficharJugador() {
 
         int dorsal = stoi(dorsalStr);
 
-        // --- COMPROBAR DORSAL REPETIDO ---
+        // mira si el dorsal ya existe
         for (const auto& jugPtr : g_plantilla) {
             if (jugPtr && jugPtr->getDorsal() == dorsal) {
                 throw runtime_error(
@@ -276,8 +259,6 @@ void ficharJugador() {
 
 
 void mostrarPlantilla() {
-    // Muestra la plantilla desde la RAM (g_plantilla)
-    // La disponibilidad se determina por si tiene contrato en g_contratos
     cout << "\n=== Lista de jugadores (Desde RAM) ===\n";
 
     if (g_plantilla.empty()) {
@@ -286,7 +267,7 @@ void mostrarPlantilla() {
     }
 
     for (const auto& j : g_plantilla) {
-        // Verificar si el jugador tiene contrato
+        // vemos si tiene contrato
         bool tieneContrato = false;
         for (const auto& c : g_contratos) {
             if (c->getDorsal() == j->getDorsal()) {
@@ -294,7 +275,6 @@ void mostrarPlantilla() {
                 break;
             }
         }
-        
         cout << "-------------------------\n";
         cout << "Dorsal:     " << j->getDorsal() << '\n';
         cout << "Nombre:     " << j->getNombre() << '\n';
@@ -304,12 +284,10 @@ void mostrarPlantilla() {
 }
 
 void rescindirContratoJugador() {
-    // Esta función rescinde el contrato de un jugador: elimina del archivo y de contratos asociados
     
-    int dorsalBuscado = -1;
+    int dorsalBuscado = -1; // para contar el numero 0 tmb 
     cout << "\nRescindir contrato (dorsal): ";
     
-    // **CORRECCIÓN DE INPUT**
     if (!(cin >> dorsalBuscado)) {
         cout << "Opcion no valida (debe ser un numero).\n";
         cin.clear();
@@ -318,13 +296,13 @@ void rescindirContratoJugador() {
     }
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    // Buscar y eliminar de g_plantilla
+    // eliminamos al jugador de la plantilla
     auto it = g_plantilla.begin();
     while (it != g_plantilla.end()) {
         if ((*it)->getDorsal() == dorsalBuscado) {
             cout << "Rescindiendo contrato de: " << (*it)->getNombre() << " (dorsal " << dorsalBuscado << ")\n";
             
-            // Eliminar también el contrato asociado de g_contratos
+            // eliminamos el contrato del jugador
             auto itContratos = g_contratos.begin();
             while (itContratos != g_contratos.end()) {
                 if ((*itContratos)->getDorsal() == dorsalBuscado) {
@@ -334,8 +312,8 @@ void rescindirContratoJugador() {
                 }
             }
             
-            it = g_plantilla.erase(it); // Borra y avanza el iterador
-            guardarPlantillaEnArchivo(); // Guarda el cambio al disco
+            it = g_plantilla.erase(it); // borra al jugador
+            guardarPlantillaEnArchivo(); 
             cout << "Jugador y su contrato eliminados correctamente.\n";
             return;
         }
@@ -345,8 +323,7 @@ void rescindirContratoJugador() {
     cout << "No se ha encontrado ningun jugador con ese dorsal.\n";
 }
 
-// === FUNCIÓN AUXILIAR PARA LEER FECHAS ===
-time_t leerFechaFormato(const string& mensaje) {
+time_t leerFechaFormato(const string& mensaje) { // para poder escribir la fecha en formato dd/mm/aaaa
     cout << mensaje << " (DD/MM/AAAA): ";
     string fechaStr;
     cin >> fechaStr;
@@ -372,8 +349,8 @@ time_t leerFechaFormato(const string& mensaje) {
     return fecha;
 }
 
-// === FUNCIÓN PARA CONVERTIR time_t A STRING ===
-string time_t_a_string(time_t tiempo) {
+
+string time_t_a_string(time_t tiempo) { // pasamos de time_t a string
     if (tiempo == 0) return "Por definir";
     tm* ltm = localtime(&tiempo);
     char buffer[11];
@@ -426,6 +403,7 @@ void menuContratos() {
         }
     } while (opcion != 5);
 }
+
 void crearContrato() {
     cout << "\n=== CREAR NUEVO CONTRATO ===" << endl;
 
@@ -582,7 +560,6 @@ void guardarContratosEnArchivo() {
                 cerr << "Error: " << e.what() << endl;
             }
         }
-// === MENU PARTIDOS ===
 
 void menuPartidos() {
     int opcion;
@@ -626,8 +603,6 @@ void menuPartidos() {
     } while (opcion != 5);
 }
 
-// === CREAR PARTIDO ===
-
 void crearPartido() {
     cout << "\n=== CREAR NUEVO PARTIDO ===" << endl;
     string rival, resp;
@@ -651,13 +626,10 @@ void crearPartido() {
     cout << "Partido creado." << endl;
     g_partidos.push_back(std::move(nuevoPartido));
 
-    // Guardar inmediatamente el partido nuevo en el archivo SIN borrar lo anterior
-    guardarPartidosEnArchivo();   // guarda todo en modo append
+    guardarPartidosEnArchivo();   
 }
 
-// === CONVOCAR PARTIDO ===
-
-void convocarPartido() {
+void convocarPartido() { // REVISAR
     cout << "\n=== CONVOCAR PARTIDO ===" << endl;
     if (g_partidos.empty()) {
         cout << "No hay partidos creados." << endl;
@@ -694,12 +666,10 @@ void convocarPartido() {
     } else {
         cout << "Seleccion invalida." << endl;
     }
-    guardarPartidosEnArchivo();
+    // deberia de funcionar para que se guarde que el partido tiene fecha y hora (guardarPartidosEnArchivo();)
 }
 
-// === REGISTRAR RESULTADO PARTIDO ===
-
-void registrarResultadoPartido() {
+void registrarResultadoPartido() { // REVISAR
     cout << "\n=== REGISTRAR RESULTADO PARTIDO ===" << endl;
     if (g_partidos.empty()) {
         cout << "No hay partidos creados." << endl;
@@ -743,10 +713,8 @@ void registrarResultadoPartido() {
     } else {
         cout << "Seleccion invalida." << endl;
     }
-    guardarPartidosEnArchivo();
+    // deberia de funcionar para que se guarde el resultado del partido (guardarPartidosEnArchivo();)
 }
-
-// === VER PARTIDOS (CARGANDO DESDE ARCHIVO) ===
 
 void verPartidos() {
     cout << "\nCargando partidos desde archivo..." << endl;
@@ -777,12 +745,9 @@ void verPartidos() {
     }
 }
 
-// === GUARDAR PARTIDOS EN ARCHIVO (NO BORRA) ===
-// La mantengo aunque con otro comportamiento: ahora AÑADE en vez de truncar.
-
-void guardarPartidosEnArchivo() {
+void guardarPartidosEnArchivo() { // Revisar 
     cout << "\nGuardando partidos en archivo (append)..." << endl;
-    ofstream ofs("partidos.txt", ios::app);   // 👈 APPEND: NO BORRA EL ARCHIVO
+    ofstream ofs("partidos.txt", ios::app);
     if (!ofs) {
         cerr << "Error: No se pudo abrir partidos.txt" << endl;
     } else {
@@ -794,9 +759,8 @@ void guardarPartidosEnArchivo() {
     }
 }
 
-// === CARGAR PARTIDOS DESDE ARCHIVO (SIN BORRAR NADA) ===
-
-void cargarPartidosDesdeArchivo() {
+void cargarPartidosDesdeArchivo() { // Revisar
+    cout << "\nCargando partidos desde archivo..." << endl;
     ifstream ifs("partidos.txt");
     if (!ifs) {
         cerr << "No se pudo abrir partidos.txt" << endl;
@@ -806,7 +770,6 @@ void cargarPartidosDesdeArchivo() {
     string linea;
     int count = 0;
 
-    // Calcular el mayor ID ya existente en memoria para mantener nextId
     int highestId = 0;
     for (const auto &exist : g_partidos)
         if (exist->getId() > highestId) highestId = exist->getId();
@@ -818,7 +781,6 @@ void cargarPartidosDesdeArchivo() {
         try {
             auto p = Partido::deserializar(linea);
             if (p) {
-                // Evitar duplicados por ID
                 bool existe = false;
                 for (const auto &exist : g_partidos) {
                     if (exist->getId() == p->getId()) { 
@@ -827,7 +789,6 @@ void cargarPartidosDesdeArchivo() {
                     }
                 }
                 if (!existe) {
-                    // Actualizar highestId
                     if (p->getId() > highestId) highestId = p->getId();
                     g_partidos.push_back(std::move(p));
                     ++count;
@@ -837,8 +798,6 @@ void cargarPartidosDesdeArchivo() {
             cerr << "Error deserializando: " << e.what() << endl;
         }
     }
-
-    // Establecer nextId a highestId+1 para evitar colisiones
     Partido::setNextId(highestId + 1);
     ifs.close();
     cout << count << " partidos cargados desde archivo." << endl;

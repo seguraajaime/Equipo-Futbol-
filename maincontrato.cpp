@@ -85,11 +85,10 @@ int main() {
                 
                 // Mostrar toda la información del contrato creado
                 cout << "\n=== CONTRATO CREADO EXITOSAMENTE ===" << endl;
-                cout << "Jugador: " << contratoPtr->getnombre() << endl;
-                cout << "Equipo: " << contratoPtr->getEquipoNombre() << endl;
+                cout << "Jugador: " << contratoPtr->getDorsal() << endl;
                 cout << "Fecha inicio: " << contratoPtr->getFechaInicioStr() << endl;
                 cout << "Fecha fin: " << contratoPtr->getFechaFinStr() << endl;
-                cout << "Salario/Clausula: $" << contratoPtr->getClausula() << endl;
+                cout << "Salario/Clausula: $" << contratoPtr->getSalario() << endl;
                 cout << "=====================================" << endl;
                 break;
             }
@@ -100,11 +99,10 @@ int main() {
                     cout << "No hay contratos registrados en esta sesion." << endl;
                 } else {
                     for (size_t i = 0; i < contratos.size(); i++) {
-                        cout << "\n" << i + 1 << ". " << contratos[i]->getnombre() << endl;
-                        cout << "   Equipo: " << contratos[i]->getEquipoNombre() << endl;
+                        cout << "\n" << i + 1 << ". " << contratos[i]->getDorsal() << endl;
                         cout << "   Inicio: " << contratos[i]->getFechaInicioStr() << endl;
                         cout << "   Fin: " << contratos[i]->getFechaFinStr() << endl;
-                        cout << "   Salario: $" << contratos[i]->getClausula() << endl;
+                        cout << "   Salario: $" << contratos[i]->getSalario() << endl;
                     }
                 }
                 break;
@@ -130,11 +128,10 @@ int main() {
                         cout << "No hay contratos guardados en el archivo." << endl;
                     } else {
                         for (size_t i = 0; i < contratosArchivo.size(); i++) {
-                            cout << "\n" << i + 1 << ". " << contratosArchivo[i]->getnombre() << endl;
-                            cout << "   Equipo: " << contratosArchivo[i]->getEquipoNombre() << endl;
+                            cout << "\n" << i + 1 << ". " << contratosArchivo[i]->getDorsal() << endl;
                             cout << "   Inicio: " << contratosArchivo[i]->getFechaInicioStr() << endl;
                             cout << "   Fin: " << contratosArchivo[i]->getFechaFinStr() << endl;
-                            cout << "   Salario: $" << contratosArchivo[i]->getClausula() << endl;
+                            cout << "   Salario: $" << contratosArchivo[i]->getSalario() << endl;
                         }
                         cout << contratosArchivo.size() << " contrato(s) cargado(s) del archivo" << endl;
                     }
