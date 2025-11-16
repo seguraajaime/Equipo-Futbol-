@@ -17,7 +17,7 @@ public:
 
     void crearPartido(const string& local, const string& visitante) {
         partidos.push_back(make_unique<Partido>(local, visitante));
-        cout << "Partido creado con ID: " << partidos.back()->getId() << endl;
+        cout << "Partido creado." << endl;
     }
 
     
@@ -114,7 +114,7 @@ public:
                     throw runtime_error("No se puede cancelar un partido que ya ha sido jugado.");
                 }
                 partidos.erase(it);
-                cout << "Partido ID " << id << " ha sido cancelado y eliminado." << endl;
+                cout << "Partido " << id << " ha sido cancelado y eliminado." << endl;
                 return;
             }
             ++it;

@@ -36,6 +36,10 @@ public:
     int getId() const;
     time_t getFechaPartido() const;
     EstadoPartido getEstado() const;
+    string getEquipoLocal() const;
+    string getEquipoVisitante() const;
+    int getGolesLocal() const;
+    int getGolesVisitante() const;
 
     // Métodos de gestión
     void convocarPartido(time_t fecha);

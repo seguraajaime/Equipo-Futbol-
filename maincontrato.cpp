@@ -17,7 +17,7 @@ time_t leerFecha(const string& mensaje) {
     // Parsear formato DD/MM/AAAA
     int dia, mes, anio;
     if (sscanf(fechaStr.c_str(), "%d/%d/%d", &dia, &mes, &anio) != 3) {
-        cerr << "Formato inválido. Use DD/MM/AAAA" << endl;
+        cerr << "Formato invalido. Use DD/MM/AAAA" << endl;
         return 0;
     }
     
@@ -29,7 +29,7 @@ time_t leerFecha(const string& mensaje) {
     
     time_t fecha = mktime(&timeinfo);
     if (fecha == -1) {
-        cerr << "Fecha inválida. Intente de nuevo." << endl;
+        cerr << "Fecha invalida. Intente de nuevo." << endl;
         return 0;
     }
     return fecha;

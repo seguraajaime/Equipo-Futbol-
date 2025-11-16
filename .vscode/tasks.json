@@ -29,8 +29,8 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
-                "-mconsole",
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-mconsole"
             ],
             "options": {
                 "cwd": "C:\\msys64\\ucrt64\\bin"

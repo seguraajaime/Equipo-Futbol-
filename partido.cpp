@@ -32,6 +32,10 @@ Partido::Partido(int id, const string& local, const string& visitante,
 int Partido::getId() const { return idPartido; }
 time_t Partido::getFechaPartido() const { return fechaPartido; }
 EstadoPartido Partido::getEstado() const { return estado; }
+string Partido::getEquipoLocal() const { return equipoLocal; }
+string Partido::getEquipoVisitante() const { return equipoVisitante; }
+int Partido::getGolesLocal() const { return golesLocal; }
+int Partido::getGolesVisitante() const { return golesVisitante; }
 
 void Partido::convocarPartido(time_t fecha) {
     fechaPartido = fecha;
@@ -42,10 +46,31 @@ void Partido::convocarPartido(time_t fecha) {
 void Partido::convocarPartido(const string& fechaStr) {
     tm tm = {};
     istringstream ss(fechaStr);
-    //Formato: DD-MM-YYYY HH:MM:SS (día-mes-año)
-    ss >> get_time(&tm, "%d-%m-%Y %H:%M:%S");
-    if (ss.fail()) {
-        throw invalid_argument("Formato de fecha invalido. Usa 'DD-MM-YYYY HH:MM:SS'.");
+    // Intentar varios formatos comunes: con '-' o '/' y con o sin segundos
+    bool parsed = false;
+    // Try: DD/MM/YYYY HH:MM
+    ss.str(fechaStr);
+    ss.clear();
+    ss >> get_time(&tm, "%d/%m/%Y %H:%M");
+    if (!ss.fail()) parsed = true;
+    if (!parsed) {
+        ss.clear(); ss.str(fechaStr);
+        ss >> get_time(&tm, "%d/%m/%Y %H:%M:%S");
+        if (!ss.fail()) parsed = true;
+    }
+    if (!parsed) {
+        ss.clear(); ss.str(fechaStr);
+        ss >> get_time(&tm, "%d-%m-%Y %H:%M");
+        if (!ss.fail()) parsed = true;
+    }
+    if (!parsed) {
+        ss.clear(); ss.str(fechaStr);
+        ss >> get_time(&tm, "%d-%m-%Y %H:%M:%S");
+        if (!ss.fail()) parsed = true;
+    }
+
+    if (!parsed) {
+        throw invalid_argument("Formato de fecha invalido. Usa 'DD/MM/YYYY HH:MM' o 'DD/MM/YYYY HH:MM:SS'.");
     }
 
     time_t fecha = mktime(&tm);
@@ -90,7 +115,7 @@ void Partido::registrarResultado(const string& marcador) {
 
 string Partido::obtenerInfo() const {
     ostringstream oss;
-    oss << "--- Partido ID: " << idPartido << " ---\n"
+    oss << "--- Partido ---\n"
         << "Estado: " << estadoToString(estado) << "\n"
         << equipoLocal << " vs "  << equipoVisitante << "\n";
 

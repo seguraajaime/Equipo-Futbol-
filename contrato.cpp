@@ -55,7 +55,7 @@ Contrato* Contrato::deserializar(const string& linea) {
     !getline(iss, cl, ';'))
     {
     // Estoy informando de un error si faltan campos
-        cerr << "Error de formato: Línea incompleta en Contrato::deserializar: " << linea << endl;
+        cerr << "Error de formato: Linea incompleta en Contrato::deserializar: " << linea << endl;
         return nullptr; //El puntero no apunta a nada
     }
     
@@ -70,8 +70,8 @@ Contrato* Contrato::deserializar(const string& linea) {
     }
     catch(const std::exception& e)
     {
-        cerr << "Error de conversión de datos en Contrato::deserializar" << e.what() << "[Linea: " << linea << "]" << endl;
-        return nullptr; //Indica que la deserialización ha fallado, el puntero no apunta a nada
+        cerr << "Error de conversion de datos en Contrato::deserializar" << e.what() << "[Linea: " << linea << "]" << endl;
+        return nullptr; //Indica que la deserializacion ha fallado, el puntero no apunta a nada
     }
 }
 //Estoy convirtiendo time_t a string
@@ -124,7 +124,7 @@ vector<Contrato*> Contrato::cargarDesdeArchivo(const string& ruta) {
     while (getline(ifs, linea)) {
         lineaNum++;
         
-        // Ignorar líneas vacías
+        // Ignorar lineas vacias
         if (linea.empty()) continue;
         
         try {
@@ -132,7 +132,7 @@ vector<Contrato*> Contrato::cargarDesdeArchivo(const string& ruta) {
             if (contrato != nullptr) {
                 contratos.push_back(contrato);
             } else {
-                cerr << "Advertencia: Línea " << lineaNum << " no se pudo deserializar correctamente." << endl;
+                cerr << "Advertencia: Linea " << lineaNum << " no se pudo deserializar correctamente." << endl;
             }
         } catch (const exception& e) {
             cerr << "Error en línea " << lineaNum << ": " << e.what() << endl;
@@ -149,19 +149,19 @@ void Contrato::guardarEnArchivo(
     const vector<unique_ptr<Contrato>>& contratos, 
     const string& archivo
 ) {
-    // Abrir en modo append para no sobrescribir el archivo existente
-    ofstream fs(archivo, ios::app);
+    // Abrir en modo trunc para sobrescribir el archivo con el estado actual en memoria
+    ofstream fs(archivo, ios::trunc);
     if (!fs.is_open()) {
-        throw runtime_error("Error: No se pudo abrir el archivo para guardar (append): " + archivo);
+        throw runtime_error("Error: No se pudo abrir el archivo para guardar: " + archivo);
     }
 
-    // Añadir cada contrato al final del archivo
+    // Escribir cada contrato, reemplazando el contenido anterior
     for (const auto& contrato : contratos) {
-        fs << contrato->serializar() << endl;
+        fs << contrato->serializar() << '\n';
     }
 
     fs.close();
-    cout << "Contratos anadidos a: " << archivo << endl;
+    cout << "Contratos guardados en: " << archivo << endl;
 }
 
 vector<unique_ptr<Contrato>> Contrato::cargarDesdeArchivo(const string& archivo) {
