@@ -9,12 +9,12 @@
 using namespace std;
 
 //Constructor
-Contrato::Contrato(const string& nombre, const string& en, time_t inicio, time_t fin, double c)
-    : nombre(nombre), equipoNombre(en), fechaInicio(inicio), fechaFin(fin), clausula(c) {}
+Contrato::Contrato(int d, const string& en, time_t inicio, time_t fin, double c)
+    : dorsal(d), equipoNombre(en), fechaInicio(inicio), fechaFin(fin), clausula(c) {}
 
 //Getters y Setters
-string Contrato::getnombre() const { 
-    return nombre; 
+int Contrato::getDorsal() const { 
+    return dorsal; 
 }
 string Contrato::getEquipoNombre() const { 
     return equipoNombre; 
@@ -37,18 +37,18 @@ void Contrato::setFechaFin(time_t fecha) {
 //Serializar
 string Contrato::serializar() const {
     ostringstream oss;
-    oss << nombre << ";" << equipoNombre << ";" << fechaInicio << ";" << fechaFin << ";" << clausula;
+    oss << dorsal << ";" << equipoNombre << ";" << fechaInicio << ";" << fechaFin << ";" << clausula;
     return oss.str();
 }
 
 //Deserializar
 Contrato* Contrato::deserializar(const string& linea) {
     istringstream iss(linea);
-    string nombre, en, fi, ff, cl;
+    string sd, en, fi, ff, cl;
 
 //Estoy verificando que existan todos los campos
    if(
-    !getline(iss, nombre, ';') ||
+    !getline(iss, sd, ';') ||
     !getline(iss, en, ';') ||
     !getline(iss, fi, ';') ||
     !getline(iss, ff, ';') ||
@@ -62,11 +62,12 @@ Contrato* Contrato::deserializar(const string& linea) {
     //Verificando la conversión
     try
     {
+        int dorsal = stoi(sd);
         time_t inicio = stoll(fi);
         time_t fin = stoll (ff);
         double clausula = stod(cl);
     //Si no hay errores, crea y devuelve el nuevo objeto
-        return new Contrato(nombre, en, inicio, fin, clausula);
+        return new Contrato(dorsal, en, inicio, fin, clausula);
     }
     catch(const std::exception& e)
     {
@@ -93,58 +94,6 @@ string Contrato::getFechaFinStr() const {
 }
 
 // Guarda todos los contratos en un archivo txt
-/**void Contrato::guardarEnArchivo(const vector<Contrato*>& contratos, const string& ruta) {
-    ofstream ofs(ruta, ios::trunc);
-    if (!ofs.is_open()) {
-        throw runtime_error("Error: No se pudo abrir el archivo " + ruta + " para escribir.");
-    }
-    
-    for (const auto& contrato : contratos) {
-        if (contrato != nullptr) {
-            ofs << contrato->serializar() << endl;
-        }
-    }
-    
-    ofs.close();
-    cout << "Contratos guardados exitosamente en: " << ruta << endl;
-}
-
-// Carga todos los contratos desde un archivo txt
-vector<Contrato*> Contrato::cargarDesdeArchivo(const string& ruta) {
-    vector<Contrato*> contratos;
-    ifstream ifs(ruta);
-    
-    if (!ifs.is_open()) {
-        throw runtime_error("Error: No se pudo abrir el archivo " + ruta + " para leer.");
-    }
-    
-    string linea;
-    int lineaNum = 0;
-    
-    while (getline(ifs, linea)) {
-        lineaNum++;
-        
-        // Ignorar lineas vacias
-        if (linea.empty()) continue;
-        
-        try {
-            Contrato* contrato = Contrato::deserializar(linea);
-            if (contrato != nullptr) {
-                contratos.push_back(contrato);
-            } else {
-                cerr << "Advertencia: Linea " << lineaNum << " no se pudo deserializar correctamente." << endl;
-            }
-        } catch (const exception& e) {
-            cerr << "Error en línea " << lineaNum << ": " << e.what() << endl;
-        }
-    }
-    
-    ifs.close();
-    cout << "Se cargaron " << contratos.size() << " contratos desde: " << ruta << endl;
-    
-    return contratos;
-}**/
-
 void Contrato::guardarEnArchivo(
     const vector<unique_ptr<Contrato>>& contratos, 
     const string& archivo
@@ -164,6 +113,7 @@ void Contrato::guardarEnArchivo(
     cout << "Contratos guardados en: " << archivo << endl;
 }
 
+// Carga todos los contratos desde un archivo txt
 vector<unique_ptr<Contrato>> Contrato::cargarDesdeArchivo(const string& archivo) {
     
     // 1. Creamos el vector "seguro" que vamos a devolver

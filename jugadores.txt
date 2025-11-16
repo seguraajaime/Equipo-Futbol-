@@ -3,10 +3,7 @@
 22;Carlos Rodriguez;DFC;1;14;11;2025
 11;Diego Cid;MC;1;14;11;2025
 88;Alejandro Marquez;LD;1;14;11;2025
-12;Alejandro Soto;LI ;1;14;11;2025
 1;Iago Aspas;POR;1;14;11;2025
 3;Luka Modric;MC;1;14;11;2025
-4;Rodrygo Goes;EI;1;14;11;2025
-6;Jaime Cunef;DC;1;14;11;2025
 2;Pedri;Mediocentro;1;16;11;2025
 23;Militao;defensa;1;16;11;2025

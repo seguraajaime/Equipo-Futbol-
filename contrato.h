@@ -9,7 +9,7 @@ using namespace std;
 //  Clase para representar el contrato
 class Contrato {
 private:
-    string nombre;
+    int dorsal;
     string equipoNombre;
     time_t fechaInicio;
     time_t fechaFin;
@@ -18,9 +18,9 @@ private:
     string time_t_a_string(time_t tiempo) const;
 
 public:
-    Contrato(const string& nombre, const string& eNombre, time_t inicio, time_t fin = 0, double clausula = 0.0);
+    Contrato(int dorsal, const string& eNombre, time_t inicio, time_t fin = 0, double clausula = 0.0);
     
-    string getnombre() const;
+    int getDorsal() const;
     string getEquipoNombre() const;
     time_t getFechaInicio() const;
     time_t getFechaFin() const;
@@ -33,8 +33,6 @@ public:
     string getFechaFinStr() const;
     
     // Métodos para guardar y cargar archivos
-    //static void guardarEnArchivo(const vector<Contrato*>& contratos, const string& ruta);
-    //static vector<Contrato*> cargarDesdeArchivo(const string& ruta);
     static void guardarEnArchivo(
         const std::vector<std::unique_ptr<Contrato>>& contratos, 
         const std::string& archivo

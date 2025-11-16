@@ -271,6 +271,7 @@ void ficharJugador() {
 
 void mostrarPlantilla() {
     // Muestra la plantilla desde la RAM (g_plantilla)
+    // La disponibilidad se determina por si tiene contrato en g_contratos
     cout << "\n=== Lista de jugadores (Desde RAM) ===\n";
 
     if (g_plantilla.empty()) {
@@ -279,18 +280,25 @@ void mostrarPlantilla() {
     }
 
     for (const auto& j : g_plantilla) {
+        // Verificar si el jugador tiene contrato
+        bool tieneContrato = false;
+        for (const auto& c : g_contratos) {
+            if (c->getDorsal() == j->getDorsal()) {
+                tieneContrato = true;
+                break;
+            }
+        }
+        
         cout << "-------------------------\n";
         cout << "Dorsal:     " << j->getDorsal() << '\n';
         cout << "Nombre:     " << j->getNombre() << '\n';
         cout << "Posicion:   " << j->getPosicion() << '\n';
-        // Nota: Necesitas la definición de la struct 'fecha' para que esta línea compile
-        // cout << "Fecha inicio contrato: " << f.dia << "/" << f.mes << "/" << f.ano << '\n'; 
-        cout << "Disponible: " << (j->estaDisponible() ? "Si" : "No") << '\n';
+        cout << "Disponible: " << (tieneContrato ? "Si" : "No") << '\n';
     }
 }
 
 void rescindirContratoJugador() {
-    // **NOTA:** Esta función fue adaptada para leer de RAM (g_plantilla) y escribir en disco.
+    // Esta función rescinde el contrato de un jugador: elimina del archivo y de contratos asociados
     
     int dorsalBuscado = -1;
     cout << "\nRescindir contrato (dorsal): ";
@@ -308,10 +316,21 @@ void rescindirContratoJugador() {
     auto it = g_plantilla.begin();
     while (it != g_plantilla.end()) {
         if ((*it)->getDorsal() == dorsalBuscado) {
-            cout << "Eliminando: " << (*it)->getNombre() << " (dorsal " << dorsalBuscado << ")\n";
+            cout << "Rescindiendo contrato de: " << (*it)->getNombre() << " (dorsal " << dorsalBuscado << ")\n";
+            
+            // Eliminar también el contrato asociado de g_contratos
+            auto itContratos = g_contratos.begin();
+            while (itContratos != g_contratos.end()) {
+                if ((*itContratos)->getDorsal() == dorsalBuscado) {
+                    itContratos = g_contratos.erase(itContratos);
+                } else {
+                    ++itContratos;
+                }
+            }
+            
             it = g_plantilla.erase(it); // Borra y avanza el iterador
             guardarPlantillaEnArchivo(); // Guarda el cambio al disco
-            cout << "Jugador eliminado correctamente.\n";
+            cout << "Jugador y su contrato eliminados correctamente.\n";
             return;
         }
         ++it;
@@ -379,12 +398,29 @@ void menuContratos() {
         switch (opcion) {
         case 1: {
             cout << "\n=== CREAR NUEVO CONTRATO ===" << endl;
-            string nombre, equipo;
+            int dorsal;
+            string equipo;
             double salario;
             
-            cout << "Nombre del jugador: ";
-            getline(cin, nombre);
-            cout << "Nombre del equipo: ";
+            cout << "Dorsal del jugador: ";
+            cin >> dorsal;
+            cin.ignore();
+            
+            // Buscar el jugador en g_plantilla
+            Jugador* jugadorEncontrado = nullptr;
+            for (auto& j : g_plantilla) {
+                if (j->getDorsal() == dorsal) {
+                    jugadorEncontrado = j.get();
+                    break;
+                }
+            }
+            
+            if (!jugadorEncontrado) {
+                cerr << "Error: No existe jugador con dorsal " << dorsal << " en la plantilla.\n";
+                break;
+            }
+            
+            cout << "Equipo de procedencia: ";
             getline(cin, equipo);
             cout << "Salario/Clausula: ";
             cin >> salario;
@@ -393,12 +429,12 @@ void menuContratos() {
             time_t fechaInicio = leerFechaFormato("Fecha de inicio");
             time_t fechaFin = leerFechaFormato("Fecha de fin");
             
-            auto nuevoContrato = make_unique<Contrato>(nombre, equipo, fechaInicio, fechaFin, salario);
+            auto nuevoContrato = make_unique<Contrato>(dorsal, equipo, fechaInicio, fechaFin, salario);
             Contrato* contPtr = nuevoContrato.get();
             g_contratos.push_back(std::move(nuevoContrato));
             
             cout << "\nCONTRATO CREADO:" << endl;
-            cout << "  Jugador: " << contPtr->getnombre() << endl;
+            cout << "  Jugador: " << jugadorEncontrado->getNombre() << " (dorsal " << dorsal << ")" << endl;
             cout << "  Equipo: " << contPtr->getEquipoNombre() << endl;
             cout << "  Inicio: " << contPtr->getFechaInicioStr() << endl;
             cout << "  Fin: " << contPtr->getFechaFinStr() << endl;
@@ -411,7 +447,16 @@ void menuContratos() {
                 cout << "No hay contratos." << endl;
             } else {
                 for (size_t i = 0; i < g_contratos.size(); i++) {
-                    cout << "\n" << i+1 << ". " << g_contratos[i]->getnombre() << endl;
+                    // Buscar nombre del jugador por dorsal
+                    string nombreJugador = "(Desconocido)";
+                    for (const auto& j : g_plantilla) {
+                        if (j->getDorsal() == g_contratos[i]->getDorsal()) {
+                            nombreJugador = j->getNombre();
+                            break;
+                        }
+                    }
+                    
+                    cout << "\n" << i+1 << ". Dorsal " << g_contratos[i]->getDorsal() << " - " << nombreJugador << endl;
                     cout << "   Equipo: " << g_contratos[i]->getEquipoNombre() << endl;
                     cout << "   Inicio: " << g_contratos[i]->getFechaInicioStr() << endl;
                     cout << "   Fin: " << g_contratos[i]->getFechaFinStr() << endl;
@@ -459,7 +504,16 @@ void menuContratos() {
                     cout << "No hay contratos." << endl;
                 } else {
                     for (size_t i = 0; i < g_contratos.size(); i++) {
-                        cout << "\n" << i+1 << ". " << g_contratos[i]->getnombre() << endl;
+                        // Buscar nombre del jugador por dorsal
+                        string nombreJugador = "(Desconocido)";
+                        for (const auto& j : g_plantilla) {
+                            if (j->getDorsal() == g_contratos[i]->getDorsal()) {
+                                nombreJugador = j->getNombre();
+                                break;
+                            }
+                        }
+                        
+                        cout << "\n" << i+1 << ". Dorsal " << g_contratos[i]->getDorsal() << " - " << nombreJugador << endl;
                         cout << "   Equipo: " << g_contratos[i]->getEquipoNombre() << endl;
                         cout << "   Inicio: " << g_contratos[i]->getFechaInicioStr() << endl;
                         cout << "   Fin: " << g_contratos[i]->getFechaFinStr() << endl;
@@ -507,11 +561,22 @@ void menuPartidos() {
         switch (opcion) {
         case 1: {
             cout << "\n=== CREAR NUEVO PARTIDO ===" << endl;
+            string rival, resp;
+            const string ourTeam = "Canadio";
+            
+            cout << "Nombre del equipo rival: ";
+            getline(cin, rival);
+            cout << "Somos locales? (s/n): ";
+            getline(cin, resp);
+            
             string local, visitante;
-            cout << "Equipo local: ";
-            getline(cin, local);
-            cout << "Equipo visitante: ";
-            getline(cin, visitante);
+            if (!resp.empty() && (resp[0] == 's' || resp[0] == 'S')) {
+                local = ourTeam;
+                visitante = rival;
+            } else {
+                local = rival;
+                visitante = ourTeam;
+            }
             
             auto nuevoPartido = make_unique<Partido>(local, visitante);
             cout << "Partido creado." << endl;
