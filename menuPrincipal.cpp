@@ -37,7 +37,6 @@ void rescindirContratoJugador();
 void crearContrato();
 void verContratos();
 void guardarContratosEnArchivo();
-void verContratosMemoria();
 void cargarPartidosDesdeArchivo();
 void guardarPartidosEnArchivo();
 void crearPartido();
@@ -586,67 +585,6 @@ void verContratos() {
         cerr << "Error al leer contratos desde archivo: " << e.what() << endl;
     }
 }
-
-void verContratosMemoria() {
-    cout << "\nCargando contratos desde archivo..." << endl;
-            try {
-                auto cargados = Contrato::cargarDesdeArchivo("contratos.txt");
-
-                // Merge sin duplicados: usamos la serialización como clave simple
-                size_t agregados = 0;
-                for (auto &ptr : cargados) {
-                    if (!ptr) continue;
-
-                    bool existe = false;
-                    for (const auto &existente : g_contratos) {
-                        if (existente->serializar() == ptr->serializar()) {
-                            existe = true;
-                            break;
-                        }
-                    }
-
-                    if (!existe) {
-                        g_contratos.push_back(std::move(ptr));
-                        agregados++;
-                    }
-                }
-
-                cout << "\n--- CONTRATOS EN MEMORIA (DESPUES DE CARGAR) ---" << endl;
-                if (g_contratos.empty()) {
-                    cout << "No hay contratos." << endl;
-                } else {
-                    for (size_t i = 0; i < g_contratos.size(); i++) {
-                        // Buscar nombre del jugador por dorsal
-                        string nombreJugador = "(Desconocido)";
-                        for (const auto& j : g_plantilla) {
-                            if (j->getDorsal() == g_contratos[i]->getDorsal()) {
-                                nombreJugador = j->getNombre();
-                                break;
-                            }
-                        }
-                        
-                        cout << "\n" << i+1 << ". Dorsal " << g_contratos[i]->getDorsal() << " - " << nombreJugador << endl;
-                        cout << "   Inicio: " << g_contratos[i]->getFechaInicioStr() << endl;
-                        cout << "   Fin: " << g_contratos[i]->getFechaFinStr() << endl;
-                        cout << "   Salario: $" << g_contratos[i]->getSalario() << endl;
-                    }
-                }
-
-                cout << "\n" << agregados << " contratos nuevos agregados desde el archivo" << endl;
-            } catch (const exception& e) {
-                cerr << "Error: " << e.what() << endl;
-            }
-}
-
-void guardarContratosEnArchivo() {
-   cout << "\nGuardando contratos en archivo..." << endl;
-            try {
-                Contrato::guardarEnArchivo(g_contratos, "contratos.txt");
-                cout << g_contratos.size() << " contratos guardados" << endl;
-            } catch (const exception& e) {
-                cerr << "Error: " << e.what() << endl;
-            }
-        }
 
 void menuPartidos() {
     int opcion;
