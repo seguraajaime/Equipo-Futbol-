@@ -1,6 +1,7 @@
 #include <iostream>
 #include <exception>
 #include "menuPrincipal.h"
+using namespace std;
 
 // Declaramos las funciones del main.cpp
 void cargarPlantillaInicial();
@@ -15,7 +16,7 @@ int main() {
     // llamamos a la clase menu principal
     try {
         menu();
-    } catch (const std::exception& e) {
-        std::cerr << "Error no esperado en el menu principal: " << e.what() << '\n';
+    } catch (const exception& e) {
+        cerr << "Error no esperado en el menu principal: " << e.what() << '\n';
     }
 }
