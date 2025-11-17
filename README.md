@@ -1,6 +1,7 @@
 # Equipo-Futbol-
 El proyecto se ejecuta escribiendo estas lineas: g++ jugador.cpp menuPlantilla.cpp contrato.cpp partido.cpp -o menuPartido.exe 
                                                 .\menuPartido.exe
+                                                
 Proyecto: Gestor de Equipo de Fútbol
 Descripción Desarrolla una aplicación en C++ para gestionar la plantilla de un equipo de fútbol. El sistema debe permitir registrar jugadores, gestionar sus contratos, y llevar un registro de los partidos (programados y jugados).
 
