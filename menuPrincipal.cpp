@@ -437,7 +437,7 @@ void menuContratos() {
     do {
         cout << "\n--- MENU CONTRATOS ---" << endl;
         cout << "1. Crear Contrato" << endl;
-        cout << "2. Ver Contratos (desde contratos.txt)" << endl;
+        cout << "2. Ver Contratos" << endl;
         cout << "3. Volver al menu principal" << endl;
         cout << "Selecciona una opcion: ";
         
