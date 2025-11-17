@@ -43,7 +43,7 @@ void crearPartido();
 void verPartidos();
 void registrarResultadoPartido();
 void convocarPartido();
-
+/* NO HACE FALTA USARLO , YA LO TENEMOS EN EL MAIN.CPP
 int main() { 
     // añadir las memorias iniciales
     cargarPlantillaInicial();
@@ -53,7 +53,7 @@ int main() {
     } catch(const exception& e) {
         cerr << "Error no esperado en el menu principal: " << e.what() << '\n';
     }
-}
+}*/
 
 void menu() {
     // imprimir por pantalla el menu 
